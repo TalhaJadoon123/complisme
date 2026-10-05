@@ -1,0 +1,57 @@
+{
+  "name": "complisme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-framework compliance for SMEs: EU AI Act, CSRD, GDPR and e-invoicing in one tool.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "pnpm run build:node && pnpm run build:apps",
+    "build:node": "pnpm -r --workspace-concurrency=1 --filter @complisme/shared --filter @complisme/frameworks --filter @complisme/core --filter @complisme/generator --filter @complisme/scanner --filter @complisme/llm --filter @complisme/cli --filter @complisme/api --filter @complisme/desktop run build",
+    "build:apps": "pnpm --filter @complisme/web run build && pnpm --filter @complisme/docs run build",
+    "clean": "rimraf packages/*/dist packages/*/.next packages/*/tsconfig.tsbuildinfo coverage",
+    "typecheck": "pnpm -r --filter \"./packages/*\" run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:core": "vitest run --project core --coverage",
+    "test:e2e": "node packages/api/scripts/e2e.mjs",
+    "lint": "tsc -b tsconfig.json",
+    "seed": "pnpm --filter @complisme/api run seed",
+    "db:push": "pnpm --filter @complisme/api exec drizzle-kit push",
+    "db:generate": "pnpm --filter @complisme/api exec drizzle-kit generate",
+    "dev:api": "pnpm --filter @complisme/api run dev",
+    "dev:web": "pnpm --filter @complisme/web run dev",
+    "dev:docs": "pnpm --filter @complisme/docs run dev",
+    "complisme": "tsx packages/cli/src/cli.ts",
+    "desktop": "node packages/desktop/dist/cli.js",
+    "desktop:dev": "tsx packages/desktop/src/dev.ts",
+    "audit": "node scripts/report-advisories.js",
+    "dep:versions": "node scripts/dep-versions.js",
+    "dep:explain": "node scripts/explain-advisories.js",
+    "verify": "pnpm run build && pnpm run test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^4.1.11",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^7.1.0",
+    "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite@>=5.0.0 <6.4.3": ">=6.4.3",
+      "vitest@<4.1.11": ">=4.1.11",
+      "@vitest/mocker@<4.1.11": ">=4.1.11",
+      "postcss@<8.5.23": ">=8.5.23",
+      "esbuild@<0.25.0": ">=0.25.0",
+      "drizzle-orm@<0.45.2": ">=0.45.2",
+      "basic-ftp@<6.2.1": ">=6.2.1"
+    }
+  }
+}

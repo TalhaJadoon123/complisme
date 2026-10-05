@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.prose-docs {
+  @apply max-w-none text-[15px] leading-relaxed text-slate-700;
+}
+.prose-docs h1 {
+  @apply mt-0 text-3xl font-black tracking-tight text-slate-900;
+}
+.prose-docs h2 {
+  @apply mb-3 mt-10 border-b border-slate-200 pb-2 text-xl font-bold text-slate-900;
+}
+.prose-docs h3 {
+  @apply mb-2 mt-6 text-base font-bold text-slate-900;
+}
+.prose-docs p {
+  @apply my-3;
+}
+.prose-docs ul {
+  @apply my-3 list-disc space-y-1 pl-6;
+}
+.prose-docs ol {
+  @apply my-3 list-decimal space-y-1 pl-6;
+}
+.prose-docs a {
+  @apply font-medium text-brand-700 underline underline-offset-2;
+}
+.prose-docs code {
+  @apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px] text-slate-800;
+}
+.prose-docs pre {
+  @apply my-4 overflow-x-auto rounded-lg bg-slate-900 p-4 text-[13px] text-slate-100;
+}
+.prose-docs pre code {
+  @apply bg-transparent p-0 text-slate-100;
+}
+.prose-docs table {
+  @apply my-4 w-full border-collapse text-sm;
+}
+.prose-docs th {
+  @apply border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold;
+}
+.prose-docs td {
+  @apply border border-slate-200 px-3 py-2 align-top;
+}
+.prose-docs blockquote {
+  @apply my-4 border-l-4 border-brand-300 bg-brand-50/50 px-4 py-2;
+}

@@ -1,0 +1,94 @@
+###############################################################################
+# CompliSME — self-hosted stack
+#
+#   docker compose up -d --build
+#
+#   API    http://localhost:4000
+#   Web    http://localhost:3000
+#   Docs   http://localhost:3001
+#   DB     postgres://complisme:complisme@localhost:5432/complisme
+#
+# Copy .env.example to .env first. Nothing leaves this machine: no AI key is
+# required, and no outbound calls are made by any service here.
+###############################################################################
+
+name: complisme
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-complisme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-complisme}
+      POSTGRES_DB: ${POSTGRES_DB:-complisme}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-complisme} -d ${POSTGRES_DB:-complisme}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-complisme}:${POSTGRES_PASSWORD:-complisme}@postgres:5432/${POSTGRES_DB:-complisme}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-development-secret-please-32-bytes-min}
+      API_CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:3000}
+      API_STATIC_KEYS: ${API_STATIC_KEYS:-}
+      STORAGE_DIR: /data/documents
+      SCAN_ROOT: /workspace
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-300}
+      # AI is entirely optional. Leave these empty and the product still works.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+    volumes:
+      - documents:/data/documents
+      # Mount the code you want to scan. Read-only: the scanner never writes.
+      - ./workspace:/workspace:ro
+    ports:
+      - '${API_PORT:-4000}:4000'
+
+  web:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      PORT: 3000
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+
+  docs:
+    build:
+      context: .
+      target: docs
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+    ports:
+      - '${DOCS_PORT:-3001}:3000'
+
+volumes:
+  postgres-data:
+  documents:

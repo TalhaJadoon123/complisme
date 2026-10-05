@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: read-only contents by default.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The auditor reports which advisories are reachable from application code
+      # rather than failing on unpatchable dev-only tooling.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Security audit
+        run: pnpm run audit
+
+      - name: Type check
+        run: pnpm --filter @complisme/shared run build && pnpm -r --workspace-concurrency=1 --filter '!@complisme/web' --filter '!@complisme/docs' run typecheck
+
+      - name: Unit and integration tests
+        run: pnpm test
+
+      - name: Coverage
+        run: pnpm run test:coverage
+
+      - name: Build
+        run: pnpm run build:node
+
+      - name: API end-to-end
+        run: |
+          node packages/api/dist/main.js &
+          API_PID=$!
+          # Give the server time to bind and to warm its capability probes.
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:4000/health > /dev/null; then break; fi
+            sleep 1
+          done
+          node packages/api/scripts/e2e.mjs http://127.0.0.1:4000
+          STATUS=$?
+          kill $API_PID 2>/dev/null || true
+          exit $STATUS
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  build-web:
+    name: Build web app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --filter @complisme/shared run build
+      - run: pnpm --filter @complisme/frameworks run build
+      - run: pnpm --filter @complisme/core run build
+      - run: pnpm --filter @complisme/generator run build
+      - run: pnpm --filter @complisme/scanner run build
+      - run: pnpm --filter @complisme/llm run build
+      - run: pnpm --filter @complisme/web run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'

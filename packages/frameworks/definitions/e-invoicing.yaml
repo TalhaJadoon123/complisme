@@ -1,0 +1,329 @@
+id: e-invoicing
+name: E-invoicing and Electronic Document Standardisation
+shortName: E-invoicing
+version: "ViDA (Directive (EU) 2024/2831) + NF-e / NPRA (Brazil)"
+jurisdiction: European Union + Brazil
+regulator: National tax administrations (DGFiT/SEFAZ, NF-e portal)
+authorityUrl: https://taxation-customs.ec.europa.eu/taxation/customs/e-business/e-invoicing_en
+enforcementDate: "2030-01-01"
+smeApplicable: true
+description: >
+  E-invoicing mandates structured, machine-readable, digital invoices. Two tracks are covered:
+  ViDA in the EU (mandatory structured e-invoicing without exemption from 1 July 2030 for
+  intra-EU B2B, digital reporting for cross-border B2C from 1 July 2030) and the Brazilian
+  NFS-e/NF-e model (national standard, phased state by state since 2016, fully national from
+  2026, hybrid model revoked from 2026). Compliance means structural validation of the XML,
+  correct tax data, contingency for offline operation and documented archiving.
+tags:
+  - invoicing
+  - tax
+  - xml
+  - digital
+articles:
+  - id: vida-ep-14-invoicing
+    title: "ViDA Art. 218 & 14(5)(a) — Electronic invoicing without exemption"
+    description: >
+      From 1 July 2030, all intra-EU cross-border B2B transactions must use structured electronic
+      invoices. Member States may not exempt microenterprises, and existing national schemes must
+      allow invoice no-one else has issued. SMEs must be able to receive structured invoices.
+    reference: "Directive (EU) 2024/2831 (ViDA), Art. 14(5)(a), Art. 218; Directive (EU) 2006/112/EC Art. 218"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1.5
+    tags: [vida, eu]
+    evidenceRequired:
+      - Process map for outbound invoicing per customer country
+      - Ability to receive and process structured invoices in all relevant formats
+      - Registration/notification in each Member State where required
+    questionnaire:
+      - id: vida-q1
+        text: Can the business send structured electronic invoices to all EU business customers it serves?
+        type: single
+        weight: 2.5
+        citation: ViDA Art. 14(5)(a)
+        effort: 8
+        remediation: Select a compliant e-invoicing provider or implement EN 16931 (e.g. UBL/Factur-X) and test an end-to-end exchange.
+        options:
+          - value: ready
+            label: Yes — capable and tested
+            satisfies: true
+          - value: partial
+            label: Partial (national format only)
+            satisfies: false
+          - value: no
+            label: No — PDF invoices only
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no EU B2B customers yet
+            notApplicable: true
+      - id: vida-q2
+        text: Can the business receive, validate and archive structured e-invoices?
+        type: boolean
+        weight: 2
+        citation: ViDA Art. 14(5)
+        effort: 5
+        remediation: Configure the inbound validation workflow and 10-year archive with immutability proofs.
+      - id: vida-q3
+        text: Has each Member State's e-invoicing registration requirement been checked?
+        type: boolean
+        weight: 1.5
+        citation: ViDA Art. 9-12
+        effort: 3
+        remediation: Keep a country-by-country register of registration and reporting duties (Poland KSeF, France Chorus, Belgium Peppol, Germany ZUGFeRD roadmap).
+
+  - id: vida-ep-218-annotation
+    title: "ViDA Art. 14(5) & 14(7) — VAT data in electronic invoices"
+    description: >
+      Electronic invoices must allow Member State tax authorities to determine VAT, and member
+      states must have access to the invoice without reissuing it. Delegated acts define the
+      common VAT profile fields to be embedded in structured invoices.
+    reference: "Directive (EU) 2024/2831, Art. 14(5), 14(7); VAT in the Digital Age work plan"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1.25
+    tags: [vida, vat]
+    evidenceRequired:
+      - VAT profile mapping per country (fields present in issued invoices)
+      - Tax number and VAT registration validation rules
+      - Reverse charge / intra-community acquisition evidence handling
+    questionnaire:
+      - id: vida-q4
+        text: Do issued invoices carry the VAT data required by each destination country's tax profile?
+        type: boolean
+        weight: 2
+        citation: ViDA Art. 14(5), 14(7)
+        effort: 4
+        remediation: Map the mandatory VAT fields per country and configure the invoice template accordingly.
+      - id: vida-q5
+        text: Are VAT identification numbers validated before invoicing (VIES check where required)?
+        type: boolean
+        weight: 1.5
+        citation: Directive (EU) 2024/2831 Art. 14(5)
+        effort: 2
+        remediation: Add a VIES lookup or local validation in the ERP for cross-border customers.
+
+  - id: vida-ep-30-crossborder-b2c
+    title: "ViDA Art. 14(4) — Digital reporting for cross-border B2C"
+    description: >
+      From 1 July 2030, suppliers established in one Member State selling distance-sold goods or
+      services to consumers in another Member State must electronically report those transactions
+      (no payment-service-provider mediation needed).
+    reference: "Directive (EU) 2024/2831, Art. 14(4)"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1
+    tags: [vida, b2c]
+    evidenceRequired:
+      - Cross-border B2C sales by destination country (OSS/IOSS data)
+      - Reporting channel per country and filing calendar
+      - Reconciliation between filed reports and revenue ledger
+    questionnaire:
+      - id: vida-q6
+        text: If you sell distance-sold goods or digital services to consumers in other EU countries, is reporting prepared per country?
+        type: single
+        weight: 2
+        citation: ViDA Art. 14(4)
+        effort: 6
+        remediation: Use OSS data as the source for country-level reports and reconcile to the ledger monthly.
+        options:
+          - value: prepared
+            label: Reporting prepared per country
+            satisfies: true
+          - value: partial
+            label: Only via OSS/IOSS
+            satisfies: false
+          - value: no
+            label: No country-level reporting
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no cross-border B2C sales
+            notApplicable: true
+
+  - id: vida-e-invoice-retention
+    title: "ViDA Art. 14(8) & 233 — Retention, authenticity and integrity"
+    description: >
+      Invoices must be retained in a machine-readable electronic format for 10 years, or such
+      longer period as the Member State requires. Authenticity of origin, integrity of content
+      and legibility of the information throughout the retention period must be guaranteed.
+    reference: "Directive (EU) 2024/2831, Art. 14(8); Directive (EU) 2006/112/EC, Art. 233"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1.5
+    tags: [retention, archiving]
+    evidenceRequired:
+      - Archiving procedure for XML and human-readable presentation
+      - Immutability/WORM storage configuration
+      - Restoration test of an archived invoice
+    questionnaire:
+      - id: vida-q7
+        text: Are issued and received invoices archived in machine-readable format for the legally required period?
+        type: boolean
+        weight: 2.5
+        citation: Directive (EU) 2006/112/EC Art. 233
+        effort: 5
+        remediation: Store the XML together with a human-readable PDF in WORM storage with a 10-year retention policy.
+      - id: vida-q8
+        text: Is invoice authenticity and integrity protected (hash/seal, immutable log, no alteration)?
+        type: boolean
+        weight: 2
+        citation: ViDA Art. 14(8)
+        effort: 3
+        remediation: Enable e-seals or sequential numbering with an immutable audit trail.
+      - id: vida-q9
+        text: Has the restoration of an archived invoice been tested?
+        type: boolean
+        weight: 1
+        citation: ViDA Art. 14(8)
+        effort: 2
+        remediation: Retrieve one invoice from three years ago and record the test.
+
+  - id: brazil-nfe
+    title: "Brazil NFS-e / NF-e — National e-invoicing model"
+    description: >
+      Brazil operates a mandatory, fully digital model with no paper invoices since the national
+      NF-e/NFS-e rollout. NF-e (products) and NFS-e (services) follow schemas defined by the
+      NF-e portal (MDFe, CT-e, NFS-e national), with XML digital signature (XMLDSig), event
+      cancellation procedures and a five-year archive requirement (reduced from 10).
+    reference: "NF-e Portal schemas, MP 1.183/2023, NFS-e national technical standard"
+    deadline: "2026-01-01"
+    fineExposure: 5000
+    weight: 2
+    tags: [brazil, nf-e]
+    evidenceRequired:
+      - SEFAZ authorisation protocol per document
+      - XMLDSig digital signature configuration and certificate management
+      - Cancelamento / substituição events workflow
+      - Contingency procedure (offline issuance with later transmission)
+    questionnaire:
+      - id: nfe-q1
+        text: Are Brazilian product invoices (NF-e) issued as authorised XML in the SEFAZ portal?
+        type: single
+        weight: 2.5
+        citation: NF-e technical note, Ajuste SINIEF
+        effort: 8
+        remediation: Integrate an accredited provider or ERP certified for NF-e; validate the schema against the current portal version.
+        options:
+          - value: authorised
+            label: Yes — XML authorised by SEFAZ
+            satisfies: true
+          - value: pdf-only
+            label: Only DANFE/PDF, no authorised XML
+            satisfies: false
+          - value: no
+            label: Not applicable — no Brazilian sales
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no Brazilian operations
+            notApplicable: true
+      - id: nfe-q2
+        text: Are service invoices (NFS-e municipal/national) issued with the required XML signature and municipal validation?
+        type: boolean
+        weight: 2
+        citation: NFS-e national standard
+        effort: 6
+        remediation: Use the national NFS-e schema where available, otherwise the municipal standard; keep the signature certificate valid.
+      - id: nfe-q3
+        text: Is there a documented contingency process for SEFAZ unavailability (offline issuance, later transmission)?
+        type: boolean
+        weight: 1.5
+        citation: Ajuste SINIEF 02/2009
+        effort: 3
+        remediation: Define the contingency batch process and rehearse it once a year.
+      - id: nfe-q4
+        text: Are XML documents archived with the digital signature for the statutory period (5 years)?
+        type: boolean
+        weight: 2
+        citation: CT-e/NF-e technical notes, art. 7
+        effort: 3
+        remediation: Archive XML (not only PDF) with signature validation for 5 years.
+      - id: nfe-q5
+        text: Are cancellation and substitution events handled within the legal deadline (24h/24h and 7 days)?
+        type: boolean
+        weight: 1.5
+        citation: Ajuste SINIEF
+        effort: 2
+        remediation: Configure event workflows and track deadlines in an operations calendar.
+      - id: nfe-q6
+        text: Are issuance rules respected by state (Radar habilitação, protocol de autorização, contingência fiscal)?
+        type: boolean
+        weight: 1.5
+        citation: Ajuste SINIEF
+        effort: 4
+        remediation: Map the rules of each state where you are registered and record them in a compliance matrix.
+
+  - id: einvoice-technical-conformity
+    title: "Technical conformity and interoperability (EN 16931, Peppol,UBL, Factur-X)"
+    description: >
+      Cross-border exchange relies on the EN 16931 syntax standard with binding profiles:
+      Peppol BIS Billing 3.0, UBL and Factur-X/ZUGFeRD for Germany, FatturaPA in Italy,
+      and the e-invoicing rules of each national platform. Non-conformity stops the
+      document being accepted.
+    reference: "EN 16931:2017 + Commission Implementing Decision (EU) 2017/1870"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1.75
+    tags: [technical, interoperability]
+    evidenceRequired:
+      - Validation report against the applicable EN 16931 / Peppol profile
+      - Mapping table local fields -> standard elements
+      - Interoperability test results with a real trading partner
+    questionnaire:
+      - id: conf-q1
+        text: Are issued documents validated against the applicable standard profile (EN 16931 / Peppol BIS 3.0 / national)?
+        type: boolean
+        weight: 2.5
+        citation: EN 16931:2017
+        effort: 4
+        remediation: Run the official validator (e.g. Peppol OpenPEPPOL validator) and archive the report per profile.
+      - id: conf-q2
+        text: Has interoperability been tested with at least one real trading partner?
+        type: boolean
+        weight: 2
+        citation: EN 16931
+        effort: 3
+        remediation: Do a test exchange and keep the protocol/screenshot as evidence.
+      - id: conf-q3
+        text: Is the behaviour during partial or total system outage defined (service continuity)?
+        type: boolean
+        weight: 1.5
+        citation: ViDA Art. 14(8)
+        effort: 3
+        remediation: Document the offline issuance procedure and the reconciliation on return to service.
+
+  - id: einvoice-process-controls
+    title: "Internal controls and audit trail for invoicing"
+    description: >
+      Sequential numbering, gap control in series, approval workflow, separation of duties
+      between issuance and accounting, and a correction (credit note) procedure are what tax
+      authorities actually inspect.
+    reference: "EU VAT Directive Art. 233, 242; national audit requirements"
+    deadline: "2030-07-01"
+    fineExposure: 50000
+    weight: 1.25
+    tags: [controls, audit]
+    evidenceRequired:
+      - Sequential numbering policy and gap analysis
+      - Approval workflow and segregation of duties matrix
+      - Credit note / correction procedure with time limits
+    questionnaire:
+      - id: ctrl-q1
+        text: Are invoices sequentially numbered with gaps investigated and documented?
+        type: boolean
+        weight: 2
+        citation: Directive (EU) 2006/112/EC Art. 233
+        effort: 2
+        remediation: Implement a numbering series per entity and a monthly gap report.
+      - id: ctrl-q2
+        text: Is there a documented procedure for issuing, correcting and crediting invoices?
+        type: boolean
+        weight: 1.5
+        citation: Directive (EU) 2006/112/EC Art. 233
+        effort: 2
+        remediation: Write a one-page invoicing SOP with approval limits and credit note deadlines.
+      - id: ctrl-q3
+        text: Are tax data on invoices reconciled against the accounting ledger periodically?
+        type: boolean
+        weight: 1.5
+        citation: Directive (EU) 2006/112/EC Art. 233
+        effort: 2
+        remediation: Run a monthly reconciliation of issued invoices vs. revenue ledger and VAT return.

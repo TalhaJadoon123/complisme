@@ -1,0 +1,32 @@
+{
+  "name": "@complisme/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CompliSME desktop GUI — a local server plus a browser-based interface, with no native compilation.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "complisme-desktop": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.json && node scripts/make-bin.js",
+    "typecheck": "tsc -b tsconfig.json",
+    "dev": "tsx src/dev.ts",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "clean": "rimraf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@complisme/core": "workspace:*",
+    "@complisme/frameworks": "workspace:*",
+    "@complisme/generator": "workspace:*",
+    "@complisme/llm": "workspace:*",
+    "@complisme/scanner": "workspace:*",
+    "@complisme/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

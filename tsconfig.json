@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/frameworks" },
+    { "path": "packages/core" },
+    { "path": "packages/generator" },
+    { "path": "packages/scanner" },
+    { "path": "packages/llm" },
+    { "path": "packages/cli" },
+    { "path": "packages/api" }
+  ]
+}

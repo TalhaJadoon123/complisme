@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.test.ts"],
+  "references": [
+    { "path": "../shared" },
+    { "path": "../frameworks" },
+    { "path": "../core" },
+    { "path": "../generator" },
+    { "path": "../scanner" },
+    { "path": "../llm" }
+  ]
+}
