@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -24,10 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` input here on purpose. pnpm/action-setup@v4 fails with
+      # "Multiple versions of pnpm specified" when `version` is also set in
+      # package.json's `packageManager` field, which made every run abort at
+      # setup before a single test ran. `packageManager` is the single pin.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -97,8 +98,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 22

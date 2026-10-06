@@ -1,4 +1,4 @@
-name: Compliance scan
+﻿name: Compliance scan
 
 # Files the scanner's own findings against its own repository, so the rule set
 # is exercised by real code rather than only by fixtures.
@@ -24,10 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` input: it conflicts with package.json's `packageManager`
+      # field and makes pnpm/action-setup abort. See ci.yml.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
