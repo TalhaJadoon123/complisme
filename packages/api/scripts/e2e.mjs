@@ -50,6 +50,13 @@ async function main() {
   check('GET /health returns ok', health.status === 200 && health.body.status === 'ok', health.body);
   check('all four frameworks are registered', health.body.frameworks?.length === 4, health.body.frameworks);
 
+  // Whether the global auth gate is active depends on how the server was
+  // started. CI runs without NODE_ENV, so open access is on and the gate is
+  // off; a production deployment has the gate on. Later assertions branch on
+  // this rather than assuming one mode.
+  const gated = health.body.openAccess === false;
+  check('health reports the auth posture', typeof health.body.openAccess === 'boolean', health.body.openAccess);
+
   // 2. Public catalogue -------------------------------------------------------
   const frameworks = await call('GET', '/api/v1/frameworks');
   check('GET /api/v1/frameworks lists 4 frameworks', frameworks.body.frameworks?.length === 4);
@@ -275,13 +282,22 @@ async function main() {
   const missing = await call('GET', '/api/v1/does-not-exist', undefined, token);
   check('unknown routes return a 404 body', missing.status === 404 && missing.body.error === 'not_found', missing.body);
 
-  // And the gate itself, checked anonymously.
+  // And the gate itself. Only meaningful on a closed deployment: with open
+  // access on, an unknown path legitimately 404s because routing is reached.
   const anon = await call('GET', '/api/v1/does-not-exist');
-  check(
-    'anonymous callers are refused before routing',
-    anon.status === 401 && anon.body.error === 'unauthorized',
-    anon.body,
-  );
+  if (gated) {
+    check(
+      'anonymous callers are refused before routing',
+      anon.status === 401 && anon.body.error === 'unauthorized',
+      anon.body,
+    );
+  } else {
+    check(
+      'open-access deployment reaches routing (401 here would mean the gate leaked on)',
+      anon.status === 404,
+      anon.body,
+    );
+  }
 
   const badAssess = await call('POST', '/api/v1/assess', { nope: true }, token);
   check('invalid payloads are rejected with 400', badAssess.status === 400, badAssess.body);
