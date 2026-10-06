@@ -76,7 +76,13 @@ ENV API_PORT=4000
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV STORAGE_DIR=/data/documents
-RUN mkdir -p /data/documents
+RUN mkdir -p /data/documents && chown -R node:node /data /app
+
+# Run unprivileged. Chromium needs a writable HOME and a sandbox-friendly
+# layout, so point HOME and TMPDIR at the node user's own directories.
+ENV HOME=/home/node
+ENV TMPDIR=/tmp
+USER node
 
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
@@ -100,6 +106,7 @@ COPY --from=build /app/package.json      /app/package.json
 
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+USER node
 EXPOSE 3000
 CMD ["pnpm", "run", "start"]
 

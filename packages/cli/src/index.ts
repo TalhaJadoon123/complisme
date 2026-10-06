@@ -544,7 +544,9 @@ export function buildProgram(): Command {
         findings,
         narrative,
         format: options.format,
-        outputPath: undefined,
+        // A directory: the generator owns the filename. Passing undefined here
+        // silently ignored --out and wrote artefacts into the cwd.
+        outputPath: dir,
       });
 
       const target = result.path ?? pathJoin(dir, `${options.kind}.${result.format}`);

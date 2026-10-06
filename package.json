@@ -12,7 +12,7 @@
     "build": "pnpm run build:node && pnpm run build:apps",
     "build:node": "pnpm -r --workspace-concurrency=1 --filter @complisme/shared --filter @complisme/frameworks --filter @complisme/core --filter @complisme/generator --filter @complisme/scanner --filter @complisme/llm --filter @complisme/cli --filter @complisme/api --filter @complisme/desktop run build",
     "build:apps": "pnpm --filter @complisme/web run build && pnpm --filter @complisme/docs run build",
-    "clean": "rimraf packages/*/dist packages/*/.next packages/*/tsconfig.tsbuildinfo coverage",
+    "clean": "node scripts/clean.js",
     "typecheck": "pnpm -r --filter \"./packages/*\" run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -30,9 +30,13 @@
     "desktop": "node packages/desktop/dist/cli.js",
     "desktop:dev": "tsx packages/desktop/src/dev.ts",
     "audit": "node scripts/report-advisories.js",
+    "scan:secrets": "node scripts/scan-secrets.js",
+    "security:posture": "node packages/api/scripts/check-auth-secret.js && node packages/api/scripts/sweep-unauthenticated.js && node packages/api/scripts/sweep-public.js",
+    "security:posture:prod": "node packages/api/scripts/check-production.js",
+    "scan:repo": "node packages/scanner/scripts/scan-repo.js",
     "dep:versions": "node scripts/dep-versions.js",
     "dep:explain": "node scripts/explain-advisories.js",
-    "verify": "pnpm run build && pnpm run test"
+    "verify": "pnpm run clean && pnpm run build && pnpm test"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
@@ -49,6 +53,7 @@
       "vitest@<4.1.11": ">=4.1.11",
       "@vitest/mocker@<4.1.11": ">=4.1.11",
       "postcss@<8.5.23": ">=8.5.23",
+      "postcss-selector-parser@<7.1.6": ">=7.1.6",
       "esbuild@<0.25.0": ">=0.25.0",
       "drizzle-orm@<0.45.2": ">=0.45.2",
       "basic-ftp@<6.2.1": ">=6.2.1"

@@ -204,9 +204,16 @@ export class MemoryRepository implements Repository {
   }
 
   async createCompany(profile: CompanyProfile): Promise<CompanyProfile> {
+    // Generate the id unless the caller supplied a genuine unique one. A shared
+    // placeholder (e.g. 'pending') would silently merge every signup into a
+    // single tenant, so those are treated as absent.
+    const supplied = profile.id?.trim();
+    const usable =
+      supplied && !/^(pending|new|todo|tmp|default)$/i.test(supplied) ? supplied : undefined;
+
     const stored: CompanyProfile = {
       ...profile,
-      id: profile.id || randomUUID(),
+      id: usable ?? randomUUID(),
       createdAt: profile.createdAt ?? nowIso(),
       updatedAt: nowIso(),
     };

@@ -202,7 +202,40 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     .map((k) => k.trim())
     .filter(Boolean);
 
-  app.addHook('onRequest', async (request) => {
+  /**
+   * Paths that answer without credentials.
+   *
+   * Deliberately minimal: liveness, the two ways to obtain a credential, and
+   * the open-source framework content the marketing site needs. Everything else
+   * is private. `GET /api/v1/github/status` is deliberately absent — it
+   * reports whether a GitHub token is configured.
+   */
+  const PUBLIC_PATHS: ReadonlySet<string> = new Set([
+    '/health',
+    '/api/v1/auth/signup',
+    '/api/v1/auth/login',
+    '/api/v1/frameworks',
+    '/api/v1/rules',
+    '/api/v1/pricing',
+    '/api/v1/ai/status',
+    // Pre-signup onboarding trial. It scores a profile supplied in the request
+    // body and persists nothing, so it touches no tenant data — but it does run
+    // the compliance engine, so it carries its own tight budget below.
+    '/api/v1/assess/preview',
+  ]);
+
+  /** Framework definitions are public by prefix, e.g. /api/v1/frameworks/gdpr. */
+  const PUBLIC_PREFIXES: readonly string[] = ['/api/v1/frameworks/'];
+
+  function isPublicRoute(method: string, url: string): boolean {
+    // CORS preflight carries no credentials by definition.
+    if (method === 'OPTIONS') return true;
+    const path = url.split('?')[0];
+    if (PUBLIC_PATHS.has(path)) return true;
+    return PUBLIC_PREFIXES.some((prefix) => path.startsWith(prefix));
+  }
+
+  app.addHook('onRequest', async (request, reply) => {
     request.auth = {};
 
     const header = request.headers.authorization;
@@ -214,34 +247,89 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       if (matchesAnyConstantTime(token, staticKeys)) {
         // Server-wide integration key: full access, company scoping by header.
         request.auth = { apiKey: token };
-        return;
+      } else {
+        const payload = verifyToken(token, authSecret);
+        const parsed = TOCTokenPayload.safeParse(payload);
+        if (parsed.success) {
+          request.auth = {
+            user: await repository.findUserById(parsed.data.sub),
+            companyId: parsed.data.cid,
+          };
+        }
       }
+    }
 
-      const payload = verifyToken(token, authSecret);
-      const parsed = TOCTokenPayload.safeParse(payload);
-      if (parsed.success) {
-        request.auth = {
-          user: await repository.findUserById(parsed.data.sub),
-          companyId: parsed.data.cid,
-        };
+    // Global authentication gate.
+    //
+    // Without this, safety depends on every individual handler remembering to
+    // check, and one that forgets is a public data leak. `scripts/
+    // sweep-unauthenticated.js` exists because that failure mode is invisible
+    // in review: it calls every registered route with no credentials and fails
+    // on any 2xx.
+    if (!openAccess && !isPublicRoute(request.method, request.url)) {
+      if (!request.auth.apiKey && !request.auth.user) {
+        void reply.code(401).send({
+          error: 'unauthorized',
+          message: 'Authentication required. Sign in or send a valid API key.',
+          statusCode: 401,
+        });
       }
     }
   });
 
-  /** Company the request acts on: explicit header/param, else the user's own. */
-  async function resolveCompanyId(request: FastifyRequest, explicit?: string): Promise<string | undefined> {
-    if (explicit) return explicit;
+  /**
+   * Resolve which company a request may act on, enforcing tenant isolation.
+   *
+   * The rule is deliberately narrow:
+   *  - A **session user** may only ever touch their own company. A `companyId`
+   *    in the path, query or body is ignored, because honouring it is an
+   *    insecure direct object reference: any signed-in user could read another
+   *    tenant's assessments, evidence and documents by editing a URL.
+   *  - A **static integration key** is server-wide by design and must state the
+   *    company explicitly; it has no session to fall back to.
+   *  - With **no credential at all** (development), an explicit id is allowed
+   *    so the CLI and the local workflow keep working.
+   */
+  function authoriseCompany(request: FastifyRequest, explicit?: string): string | undefined {
     const header = request.headers['x-company-id'];
-    if (typeof header === 'string' && header) return header;
-    return request.auth.companyId ?? request.auth.user?.companyId;
+    const fromHeader = typeof header === 'string' && header ? header : undefined;
+
+    // Integration key: server-wide, so the caller chooses the tenant.
+    if (request.auth.apiKey) return explicit ?? fromHeader;
+
+    // Signed-in user: pinned to their own company, full stop.
+    const own = request.auth.companyId ?? request.auth.user?.companyId;
+    if (own) return own;
+
+    // Unauthenticated: allowed only when the deployment is explicitly open.
+    if (openAccess) return explicit ?? fromHeader;
+    return undefined;
   }
 
-  function requireCompany(request: FastifyRequest, reply: FastifyReply, explicit?: string): Promise<string | undefined> {
-    const companyId = request.auth.apiKey ? explicit : (request.auth.companyId ?? explicit ?? request.auth.user?.companyId);
+  /**
+   * As `authoriseCompany`, but without the 401 side effect.
+   *
+   * Used by routes where "no company" is a legitimate, handled state rather
+   * than an authorisation failure — the AI assistant, GitHub publishing and the
+   * two report routes all degrade gracefully when no tenant is in context.
+   * Isolation still applies: a foreign id is still ignored, not honoured.
+   */
+  function resolveCompany(request: FastifyRequest, explicit?: string): string | undefined {
+    return authoriseCompany(request, explicit);
+  }
+
+  /** As `authoriseCompany`, but answers 401 and returns undefined when refused. */
+  function requireCompany(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    explicit?: string,
+  ): Promise<string | undefined> {
+    const companyId = authoriseCompany(request, explicit);
     if (!companyId) {
       void reply.code(401).send({
         error: 'unauthorized',
-        message: 'No company context. Sign in, or pass ?companyId= for an integration key.',
+        message:
+          'No company context for this credential. Sign in, or use an integration key with x-company-id.',
         statusCode: 401,
       });
       return Promise.resolve(undefined);
@@ -337,8 +425,9 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       });
     }
 
-    const profile: CompanyProfile = {
-      id: 'pending',
+    // No `id` here on purpose: the repository assigns one. Hard-coding a
+    // placeholder collapses every self-signup into a single tenant.
+    const profile: Omit<CompanyProfile, 'id'> = {
       name: companyName,
       legalName: companyName,
       country: country.toUpperCase(),
@@ -348,7 +437,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       size: 'micro',
       createdAt: nowIso(),
     };
-    const company = await repository.createCompany(profile);
+    const company = await repository.createCompany(profile as CompanyProfile);
 
     const user = await repository.createUser({
       email,
@@ -522,7 +611,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     }
 
     const body = parsed.data;
-    const companyId = await resolveCompanyId(request, body.companyId);
+    const companyId = await resolveCompany(request, body.companyId);
     let profile = companyId ? await repository.findCompany(companyId) : undefined;
     if (!profile && body.profile) profile = normaliseProfile(body.profile);
     if (!profile) {
@@ -612,7 +701,14 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
   });
 
   /** Non-persisting assessment used by the onboarding wizard to show live scores. */
-  app.post('/api/v1/assess/preview', async (request, reply) => {
+  app.post(
+  '/api/v1/assess/preview',
+  {
+    // Unauthenticated, so the budget is deliberately tight: this runs the
+    // engine on caller-supplied input.
+    config: budget(process.env.RATE_LIMIT_PREVIEW, 20),
+  },
+  async (request, reply) => {
     const parsed = previewRequestSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.code(400).send({
@@ -632,7 +728,8 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       gapCount: result.gaps.length,
       blockers: result.gaps.filter((g) => g.severity === 'error').length,
     };
-  });
+  },
+  );
 
   app.get('/api/v1/companies/:id/status', async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -739,7 +836,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     }
 
     const body = parsed.data;
-    const companyId = await resolveCompanyId(request, body.companyId);
+    const companyId = await resolveCompany(request, body.companyId);
     let profile = companyId ? await repository.findCompany(companyId) : undefined;
     if (!profile && body.profile) profile = normaliseProfile(body.profile);
     if (!profile) {
@@ -840,7 +937,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
 
   app.get('/api/v1/documents', async (request, reply) => {
     const query = request.query as { companyId?: string };
-    const companyId = await resolveCompanyId(request, query.companyId);
+    const companyId = await resolveCompany(request, query.companyId);
     if (!companyId) {
       return reply.code(400).send({ error: 'missing_company', message: 'Pass companyId', statusCode: 400 });
     }
@@ -923,14 +1020,14 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
 
   app.get('/api/v1/companies/:id/evidence', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const companyId = await resolveCompanyId(request, id);
+    const companyId = await resolveCompany(request, id);
     if (!companyId) return reply.code(400).send({ error: 'missing_company', message: 'Missing company', statusCode: 400 });
     return { evidence: await repository.listEvidence(companyId) };
   });
 
   app.post('/api/v1/companies/:id/evidence', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const companyId = await resolveCompanyId(request, id);
+    const companyId = await resolveCompany(request, id);
     if (!companyId) return reply.code(400).send({ error: 'missing_company', message: 'Missing company', statusCode: 400 });
 
     const body = request.body as Record<string, unknown>;
@@ -957,7 +1054,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
 
   app.delete('/api/v1/companies/:id/evidence/:evidenceId', async (request, reply) => {
     const { id, evidenceId } = request.params as { id: string; evidenceId: string };
-    const companyId = await resolveCompanyId(request, id);
+    const companyId = await resolveCompany(request, id);
     if (!companyId) return reply.code(400).send({ error: 'missing_company', message: 'Missing company', statusCode: 400 });
     const removed = await repository.removeEvidence(companyId, evidenceId);
     if (!removed) return reply.code(404).send({ error: 'not_found', message: 'Evidence not found', statusCode: 404 });
@@ -997,7 +1094,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
           .code(400)
         .send({ error: 'question_too_long', message: 'Keep the question under 4000 characters', statusCode: 400 });
       }
-      const companyId = await resolveCompanyId(request, body.companyId);
+      const companyId = await resolveCompany(request, body.companyId);
       const profile = companyId ? await repository.findCompany(companyId) : undefined;
 
       // Delimit the caller-supplied context so text inside the company profile
@@ -1063,7 +1160,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       }
 
       const limit = Math.max(1, Math.min(Number(body?.limit ?? 25), 100));
-      const companyId = await resolveCompanyId(request, body?.companyId);
+      const companyId = await resolveCompany(request, body?.companyId);
       const issues: GitHubIssue[] = [];
 
       if (companyId) {
@@ -1169,6 +1266,14 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     });
   });
 
+  if (usingDefaultSecret && process.env.NODE_ENV === 'production') {
+    // Refusing to boot is the only safe behaviour: a published default secret
+    // lets anyone mint a valid session token.
+    throw new Error(
+      'AUTH_SECRET is set to the built-in development value and NODE_ENV=production. ' +
+        'Generate a real secret with `openssl rand -hex 32` and set it before starting.',
+    );
+  }
   if (usingDefaultSecret && openAccess) {
     app.log.warn('AUTH_SECRET is the built-in development value. Set AUTH_SECRET before deploying.');
   }

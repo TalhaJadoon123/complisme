@@ -270,7 +270,7 @@ export async function githubStatus(
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ configured: boolean; repo: string | null; authenticated: boolean; note: string }> {
   const repo = parseRepo(config.repo);
-  if (!repo) return { configured: false, repo: null, authenticated: false, note: 'Set GITHUB_REPO=owner/repo.' };
+  if (!repo) return { configured: false, repo: null, authenticated: false, note: 'Set GITHUB_REPOSITORY=owner/repo.' };
   if (!config.token) {
     return {
       configured: true,

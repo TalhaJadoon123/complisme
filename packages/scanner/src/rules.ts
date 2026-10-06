@@ -197,6 +197,45 @@ function finding(
 // Rules
 // ---------------------------------------------------------------------------
 
+/**
+ * True when a line is a vocabulary table rather than processing.
+ *
+ * A scanner's own rule definitions, or any constant list of enum values,
+ * contain exactly the words the rules look for — "health", "biometric",
+ * "passport". Reporting those as personal data handling buries the real
+ * findings: in a single rules file, 18 of 20 "critical" hits were the term
+ * list itself.
+ *
+ * The signature is a flat run of short, lowercase, single-quoted literals with
+ * nothing else between them. Real handling code assigns objects, calls or
+ * composed expressions, so this does not hide genuine findings.
+ */
+function looksLikeVocabularyTable(snippet: string): boolean {
+  const trimmed = (snippet ?? '').trim();
+  if (trimmed.length < 40) return false;
+
+  const isArrayLiteral = /^\[[^\]]*\][;,]?$/.test(trimmed);
+  const isAssignedArray = /^[\w$.]+\s*(?::[^=]+)?=\s*\[[^\]]*\][;,]?$/.test(trimmed);
+  if (!isArrayLiteral && !isAssignedArray) return false;
+
+  const stripped = trimmed.replace(/^[\w$.]+\s*(?::[^=]+)?=\s*/, '');
+  const terms = [...stripped.matchAll(/'([a-z_]{3,})'/g)].map((m) => m[1]);
+  if (terms.length < 4) return false;
+
+  // Nothing but those words and separators may remain.
+  const residue = stripped
+    .replace(/'([a-z_]{3,})'/g, '')
+    .replace(/[\s,]/g, '')
+    .replace(/^\[/, '')
+    .replace(/\][;,]?$/, '');
+  return residue.length === 0;
+}
+
+/** Detectors skip the rule's own vocabulary rather than reporting it. */
+function isVocabularyTable(event: SourceEvent): boolean {
+  return looksLikeVocabularyTable(event.snippet ?? '');
+}
+
 const consentCaptured: Rule = {
   id: 'consent/capture',
   title: 'Consent capture mechanism detected',
@@ -294,7 +333,8 @@ const sensitiveData: Rule = {
       .filter(
         (e) =>
           (e.kind === 'assignment' || e.kind === 'call' || e.kind === 'declaration') &&
-          [...hasSensitive(e.name), ...hasSensitive(e.args.join(' '))].length > 0,
+          [...hasSensitive(e.name), ...hasSensitive(e.args.join(' '))].length > 0 &&
+          !isVocabularyTable(e),
       )
       .map((event) => ({
         event,
@@ -518,7 +558,10 @@ const biometricRule: Rule = {
       .filter(
         (e) =>
           (e.kind === 'assignment' || e.kind === 'call' || e.kind === 'declaration') &&
-          hasSensitive(e.name).some((t) => ['biometric', 'fingerprint', 'face_template', 'voiceprint', 'iris', 'retina'].includes(t)),
+          hasSensitive(e.name).some((t) =>
+            ['biometric', 'fingerprint', 'face_template', 'voiceprint', 'iris', 'retina'].includes(t),
+          ) &&
+          !isVocabularyTable(e),
       )
       .map((event) => ({ event })),
 };

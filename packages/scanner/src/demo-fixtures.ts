@@ -138,7 +138,10 @@ func ProcessCustomer(c Customer) {
 }
 
 func main() {
-	token := "ghp_16C7e42F292c6912E7710c838347Ae178B4a"
+	// Deliberately not a real token shape: GitHub secret scanning flags any
+	// string matching ghp_ + 36 chars, and a scanner fixture must not teach
+	// people to paste real credentials into source.
+	token := "REDACTED-example-token-not-a-credential"
 	os.Setenv("GITHUB_TOKEN", token)
 	ProcessCustomer(Customer{Email: "a@b.com", Name: "A B", Salary: 50000, Gender: "female"})
 }

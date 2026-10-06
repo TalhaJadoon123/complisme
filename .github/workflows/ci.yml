@@ -38,6 +38,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      # A secret that reaches history is unrecoverable, so scan every tracked
+      # file before anything else. gitleaks is the usual tool; this repo has no
+      # external binary dependency, so it ships its own equivalent.
+      - name: Secret scan
+        run: node scripts/scan-secrets.js --all
+
       - name: Security audit
         run: pnpm run audit
 
@@ -52,6 +58,14 @@ jobs:
 
       - name: Build
         run: pnpm run build:node
+
+      # These three gate the deploy on the defects found in release review:
+      #  - check-auth-secret   : refuses to boot on the published dev secret
+      #  - sweep-unauthenticated: every private route 401s without credentials
+      #  - sweep-public          : the public surface still answers anonymously
+      # They use in-process injection, so no listening socket is required.
+      - name: Security posture
+        run: pnpm run security:posture
 
       - name: API end-to-end
         run: |

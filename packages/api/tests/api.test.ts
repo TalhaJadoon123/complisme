@@ -20,6 +20,11 @@ const password = 'Test12345';
 let token: string | null = null;
 let companyId: string | null = null;
 
+// buildServer() loads every framework definition and compiles the scanner; on a
+// cold or loaded machine that takes far longer than vitest's 10s default hook
+// timeout, which made this suite flake rather than fail deterministically.
+const BOOT_TIMEOUT = 180_000;
+
 beforeAll(async () => {
   // Pin the scan root to the repository rather than the test runner's cwd, so
   // the scanner tests do not depend on where vitest was invoked from.
@@ -41,11 +46,11 @@ beforeAll(async () => {
   const body = response.json();
   token = body.token;
   companyId = body.company?.id;
-});
+}, BOOT_TIMEOUT);
 
 afterAll(async () => {
   await app.close();
-});
+}, BOOT_TIMEOUT);
 
 /** Returns the shared token, signing up on first use. */
 async function auth(): Promise<string> {

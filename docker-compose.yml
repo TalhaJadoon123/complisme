@@ -45,7 +45,9 @@ services:
       API_HOST: 0.0.0.0
       API_PORT: 4000
       DATABASE_URL: postgres://${POSTGRES_USER:-complisme}:${POSTGRES_PASSWORD:-complisme}@postgres:5432/${POSTGRES_DB:-complisme}
-      AUTH_SECRET: ${AUTH_SECRET:-change-me-development-secret-please-32-bytes-min}
+      # No default on purpose: Compose substitutes an empty value and the API
+      # refuses to start rather than signing tokens with a published secret.
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env - generate with openssl rand -hex 32}
       API_CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:3000}
       API_STATIC_KEYS: ${API_STATIC_KEYS:-}
       STORAGE_DIR: /data/documents
@@ -87,7 +89,9 @@ services:
     environment:
       PORT: 3001
     ports:
-      - '${DOCS_PORT:-3001}:3000'
+      # The docs image serves on 3001 (`next start -p 3001`). Mapping the host
+      # port to container 3000 would publish a port nothing listens on.
+      - '${DOCS_PORT:-3001}:3001'
 
 volumes:
   postgres-data:

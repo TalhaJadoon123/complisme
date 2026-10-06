@@ -15,13 +15,26 @@ const path = require('node:path');
 
 async function main() {
   const argv = process.argv.slice(2);
-  const root = argv[0] && !argv[0].startsWith('--') ? argv[0] : '.';
-  const outIndex = argv.indexOf('--out');
-  const out = outIndex !== -1 ? argv[outIndex + 1] : 'scan.json';
+
+  // Positional form: `scan-repo.js <root> [out]`. `--out` wins if both given.
+  // Flags are filtered out first so `--out x` is never mistaken for a root.
+  const positionals = argv.filter((a, i) => {
+    if (a.startsWith('--')) return false;
+    // Skip the value belonging to a preceding --flag.
+    const flag = argv[i - 1];
+    return !flag || !flag.startsWith('--');
+  });
+  const root = positionals[0] ?? '.';
+  const outFlagIndex = argv.indexOf('--out');
+  const out = outFlagIndex !== -1 ? argv[outFlagIndex + 1] : positionals[1] ?? 'scan.json';
   const failIndex = argv.indexOf('--fail-on');
   const failOn = failIndex !== -1 ? argv[failIndex + 1] : undefined;
   const rulesetIndex = argv.indexOf('--ruleset');
   const ruleset = rulesetIndex !== -1 ? argv[rulesetIndex + 1] : 'all';
+  if (!out) {
+    process.stderr.write('--out was given without a value\n');
+    process.exit(2);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { CodeScanner, summariseScan } = require('../dist/index.js');
@@ -44,6 +57,9 @@ async function main() {
     errors: result.errors,
   };
 
+  // Create the parent directory: CI writes to a nested path that does not exist
+  // yet, and failing there is a confusing way to lose a report.
+  require('node:fs').mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   require('node:fs').writeFileSync(out, JSON.stringify(report, null, 2), 'utf8');
 
   process.stdout.write(

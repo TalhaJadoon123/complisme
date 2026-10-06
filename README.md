@@ -84,11 +84,16 @@ packages/
   llm/          BYOK providers (OpenAI/Anthropic/Ollama), prompts, redaction
   cli/          `complisme` command line interface
   api/          Fastify REST API, Drizzle schema, auth, seed
+  desktop/      Local GUI: a 127.0.0.1 server plus a self-contained HTML page
   web/          Next.js app: marketing, onboarding, dashboard, documents, roadmap
   docs/         Next.js documentation site (markdown from packages/docs/content)
 ```
 
-Dependency direction is strictly downward: `shared → frameworks → core → {generator, scanner, llm} → {cli, api} → {web, docs}`.
+Dependency direction is strictly downward: `shared → frameworks → core → {generator, scanner, llm} → {cli, api} → {web, docs}`, with `desktop` sitting on `api`.
+
+The desktop app is a plain local HTTP server and one HTML file, not Electron or
+Tauri. That keeps the toolchain to `pnpm install` with no per-platform native
+build, at the cost of not shipping a signed installer.
 
 ---
 
@@ -199,12 +204,37 @@ Copy `.env.example` to `.env`. Only `AUTH_SECRET` and `DATABASE_URL` are genuine
 |---|---|---|
 | `API_HOST` | `0.0.0.0` | |
 | `API_PORT` | `4000` | |
-| `API_STATIC_KEYS` | — | Comma-separated integration keys for machine access |
+| `API_STATIC_KEYS` | — | Comma-separated integration keys for machine access. Server-wide: name the tenant with `x-company-id` |
 | `STORAGE_DIR` | `.data/documents` | Where generated documents are written |
 | `SCAN_ROOT` | API cwd | The scanner refuses any path outside this |
 | `RATE_LIMIT_MAX` | `300` | Requests per window |
 | `RATE_LIMIT_WINDOW` | `1 minute` | |
-| `NODE_ENV` | — | `production` enables strict auth checks |
+| `NODE_ENV` | — | `production` enables the global auth gate. **The API refuses to boot with the default `AUTH_SECRET` when this is set** |
+
+Per-route rate budgets override the global limit. Lower them for a shared or
+public deployment:
+
+| Variable | Default | Guards |
+|---|---|---|
+| `RATE_LIMIT_AI` | `20` | `POST /api/v1/ai/ask` — outbound LLM spend |
+| `RATE_LIMIT_SCAN` | `10` | `POST /api/v1/scan` — CPU and filesystem walk |
+| `RATE_LIMIT_GENERATE` | `15` | `POST /api/v1/generate` — PDF/DOCX rendering |
+| `RATE_LIMIT_PUBLISH` | `10` | `POST /api/v1/github/issues` — outbound writes |
+
+### Optional — GitHub integration
+
+`complisme publish` and `POST /api/v1/github/issues` turn unresolved compliance
+gaps into GitHub issues. Without these the rest of the tool works unchanged.
+
+| Variable | Notes |
+|---|---|
+| `GITHUB_TOKEN` | Fine-grained PAT, needs `issues: write` on the target repo |
+| `GITHUB_REPOSITORY` | `owner/repo`. Defaults to the `GITHUB_REPOSITORY` CI variable |
+| `GITHUB_API_URL` | Only for GitHub Enterprise |
+
+Publishing is idempotent: each gap maps to a stable issue key, so re-running
+updates the existing issue instead of creating duplicates. Use `dryRun: true` to
+preview. `GET /api/v1/github/status` reports whether publishing is configured.
 
 ### Optional — AI (BYOK)
 
@@ -342,6 +372,7 @@ complisme generate   --kind <kind> [--format pdf|docx|html] [--ai] [--scan <path
 complisme evidence   add|list [--framework] [--article] [--title] [--type] [--note]
 complisme documents  [--json]
 complisme frameworks [--json]
+complisme publish    [--repo owner/name] [--title-prefix <text>] [--limit <n>] [--scan <path>] [--dry-run]
 complisme status-all
 ```
 
@@ -349,12 +380,39 @@ Global: `--dir <path>`, `--global`, `--json`, `--yes`.
 
 Document kinds: `ai-act-annex-iv`, `ai-act-risk-register`, `ai-act-conformity-declaration`, `gdpr-ropa`, `gdpr-dpia`, `gdpr-dsr-response`, `gdpr-tom`, `consent-notice`, `nda-dpa`, `csrd-report`, `esrs-datapoint`, `einvoice-validation-report`, `compliance-roadmap`.
 
+`publish` turns unresolved gaps into GitHub issues. It needs `GITHUB_TOKEN`; each gap maps to a stable issue key so re-running updates the existing issue instead of creating duplicates. `--dry-run` prints what it would create. Combine with `--scan` to publish straight from a fresh scan.
+
+```bash
+complisme scan ./src --write scan.json
+complisme publish --scan ./src --dry-run     # preview
+GITHUB_TOKEN=ghp_xxx complisme publish --repo owner/name
+```
+
 CI usage:
 
 ```bash
 complisme --json gap > gaps.json
 complisme scan ./src --fail-on critical --write scan.json || exit 1
 ```
+
+### Desktop GUI
+
+A local GUI for people who do not want a terminal. It starts a server bound to
+`127.0.0.1` and serves a single self-contained HTML page — no Electron, no
+Tauri, no per-platform native toolchain.
+
+```bash
+pnpm run build
+pnpm desktop            # prints the URL and opens it; default port 4317
+pnpm desktop -- --port 5000 --no-open
+```
+
+Override the port with `--port` or `COMPLEISME_PORT`. Add `--json` for a
+machine-readable summary.
+
+Six views: company profile, questionnaire, assessment status, gap analysis,
+roadmap and document generation. It talks to the local API in-process, so it
+works with no database and no external service.
 
 ---
 
@@ -376,7 +434,7 @@ Base URL `http://localhost:4000`.
 | GET | `/api/v1/companies/:id` | ✓ | Profile, applicability, fine exposure |
 | PUT | `/api/v1/companies/:id` | ✓ | Update the profile (onboarding) |
 | POST | `/api/v1/assess` | ✓ | Run the engine; persists scores and gaps |
-| POST | `/api/v1/assess/preview` | — | Score without persisting |
+| POST | `/api/v1/assess/preview` | — | Score without persisting (pre-signup trial, rate limited) |
 | GET | `/api/v1/companies/:id/status` | ✓ | Scores, gaps, deadlines, countdowns |
 | GET | `/api/v1/companies/:id/roadmap` | ✓ | The phased plan (`?horizon=90`) |
 | PATCH | `/api/v1/gaps/:id` | ✓ | `{ "status": "in_progress" }` |
@@ -386,9 +444,13 @@ Base URL `http://localhost:4000`.
 | GET/POST | `/api/v1/companies/:id/evidence` | ✓ | Evidence library |
 | DELETE | `/api/v1/companies/:id/evidence/:id` | ✓ | Remove evidence |
 | POST | `/api/v1/ai/ask` | ✓ | Free-form compliance question |
+| GET | `/api/v1/github/status` | ✓ | Whether GitHub publishing is configured |
+| POST | `/api/v1/github/issues` | ✓ | Publish gaps as issues (`dryRun` to preview) |
 | POST | `/api/v1/subscription` | ✓ | Change plan |
 
 Authenticate with `Authorization: Bearer <token>`. Machine access: set `API_STATIC_KEYS` and send the key as a bearer token with `x-company-id` for scoping.
+
+A signed-in user is pinned to their own company — a `companyId` in the path, query, body or `x-company-id` is ignored for session tokens. Integration keys are server-wide and must name the company they act on. See [Security](#security).
 
 Errors share one shape: `{ error, message, statusCode, details? }`.
 
@@ -460,27 +522,109 @@ Details: <http://localhost:3001/docs/scanner>.
 
 ---
 
+## Security
+
+### Authentication
+
+A single global gate in the `onRequest` hook decides whether a request is
+authenticated at all. This matters more than it sounds: without it, safety
+depends on every individual handler remembering to check, and one that forgets
+is a public data leak. Three endpoints answer anonymously, and only these three
+groups:
+
+| Public | Why |
+|---|---|
+| `GET /health` | Container `HEALTHCHECK` and load-balancer probes carry no credentials |
+| `POST /api/v1/auth/signup`, `POST /api/v1/auth/login` | Self-service onboarding |
+| `GET /api/v1/frameworks`, `/api/v1/frameworks/:id`, `/api/v1/rules`, `/api/v1/pricing`, `/api/v1/ai/status` | Open-source framework content; the marketing site needs it before signup |
+
+Everything else requires a valid session token or an integration key. In
+development (`NODE_ENV` unset) the gate is off, so the CLI and the local workflow
+work without a login.
+
+### Tenant isolation
+
+A signed-in user is pinned to their own company. A `companyId` in the path,
+query string, request body or `x-company-id` header is **ignored** for session
+credentials, because honouring it would let any signed-in user read another
+tenant's assessments, evidence and documents by editing a URL.
+
+Integration keys are the one exception: they are server-wide by design, so they
+must name the company they act on via `x-company-id`.
+
+### Verifying the above
+
+Three checks run in CI and can be run locally. All three need `pnpm run build`
+first, and none needs a listening socket — they inject requests in-process.
+
+```bash
+pnpm run security:posture
+```
+
+| Check | Asserts |
+|---|---|
+| `check-auth-secret.js` | The API refuses to boot with the built-in development secret when `NODE_ENV=production` |
+| `sweep-unauthenticated.js` | Walks Fastify's own route tree and fails if **any** private route answers an anonymous caller with 2xx |
+| `sweep-public.js` | The public surface above still answers anonymously, plus CORS preflight |
+
+`sweep-unauthenticated.js` is the important one. Because it derives its route
+list from the runtime route table, a route added later without an auth check
+fails CI automatically instead of shipping quietly.
+
+Two deeper suites run against a production-configured server:
+
+```bash
+pnpm run security:posture:prod   # headers, auth, cross-tenant isolation, traversal
+```
+
+### Other hardening
+
+- **Secrets.** `AUTH_SECRET` must be at least 32 bytes; the API refuses to start on the default value in production. API keys are compared in constant time. `.env` is gitignored and no credential-shaped strings are committed. `pnpm run scan:secrets` scans staged content for credential shapes — use `--all` to scan every tracked file, as CI does.
+- **Rate limits.** A global budget plus tighter per-route budgets on the four expensive operations (`RATE_LIMIT_AI`, `_SCAN`, `_GENERATE`, `_PUBLISH`).
+- **Path confinement.** `packages/scanner/src/path-safety.ts` resolves every path against `SCAN_ROOT`, refuses symlinks, and re-checks containment on the realpath — a prefix check alone accepted `/workspace-secrets` for a root of `/workspace`.
+- **Prompt injection.** Caller-supplied company context is wrapped in `<company_context>` delimiters so text inside a profile cannot be read as instructions, and LLM errors are sanitised before they reach a client.
+- **Response headers.** HSTS, `X-Content-Type-Options`, frame and referrer policies, and a CSP on the web app.
+- **Rendering.** Puppeteer runs with memory and renderer limits and a close timeout.
+
+### Dependency audit
+
+`pnpm run audit` classifies every advisory by whether it is actually reachable:
+
+```bash
+pnpm run audit
+```
+
+Current posture: **0 advisories reachable from application code.** Three remain —
+`braces` (build tooling only, via chokidar/micromatch) and two `extract-zip`
+(present in the pnpm store, but no package declares them). None has an upstream
+patch. Overrides for vitest, vite, esbuild, postcss, drizzle-orm and basic-ftp
+are pinned in `package.json` under `pnpm.overrides`.
+
+---
+
 ## Testing
 
 ```bash
-pnpm test                      # 227 tests across 9 files
+pnpm test                      # 311 tests across 14 files
 pnpm test:coverage             # with coverage and thresholds
 pnpm test:core                 # core package only, with its 80% floor
-pnpm test:e2e                  # 55 assertions against a running API
+pnpm test:e2e                  # 56 assertions against a running API
+pnpm run security:posture      # auth gate, public surface, dev-secret refusal
 ```
 
-| Suite | Tests | Covers |
-|---|---|---|
-| `core` | 42 | Engine, scoring, gap analysis, roadmap, profile helpers |
-| `api` | 36 | Every route, auth, repository, seed |
-| `llm` | 27 | Redaction, prompts, all three providers, graceful degradation |
-| `shared` | 30 | Constants, utils, scoring semantics, markdown, schemas |
-| `frameworks` | 28 | Registry, YAML validation, applicability, penalty model |
-| `generator` | 24 | All 13 document kinds, HTML, DOCX, branding |
-| `cli` | 21 | Workspace, answer parsing, output rendering, program definition |
-| `scanner` | 19 | Parsers, all rules, data flow, gap derivation |
+| Suite | Covers |
+|---|---|
+| `core` | Engine, scoring, gap analysis, roadmap, profile helpers |
+| `api` | Every route, auth, repository, seed, **tenant isolation** |
+| `llm` | Redaction, prompts, all three providers, graceful degradation |
+| `shared` | Constants, utils, scoring semantics, markdown, schemas |
+| `frameworks` | Registry, YAML validation, applicability, penalty model |
+| `generator` | All 13 document kinds, HTML, DOCX, branding |
+| `cli` | Workspace, answer parsing, output rendering, program definition, `publish` |
+| `desktop` | GUI server, views, real PDF generation |
+| `scanner` | Parsers, all rules, data flow, gap derivation, GitHub publishing |
 
-Measured coverage: **84.6% statements, 73.1% branches, 77.1% functions overall**; the compliance engine specifically is at **96.5% statements / 93.8% functions**, enforced by an 80% floor.
+Measured on the full suite: **75.9% statements, 64.1% branches, 76.5% functions, 77.7% lines overall**. The compliance engine — the part that has to be right — is held to a hard floor and sits well above it: **94.6% lines, 84.9% functions, 76.8% branches**. Thresholds are enforced in `vitest.config.ts`, so a drop fails the build rather than being reported and ignored.
 
 The E2E script runs against a live server:
 
@@ -495,14 +639,16 @@ node packages/api/scripts/e2e.mjs http://localhost:4000
 
 **Working and tested end to end:**
 
-- All 10 packages build from a clean checkout
-- 227 unit/integration tests pass; 55 E2E assertions pass against a running server
-- The CLI runs the full flow: init → answer → status → gap → roadmap → scan → generate
+- All 11 packages build from a clean checkout
+- 311 unit/integration tests pass; 56 E2E assertions pass against a running server
+- 17 production-posture assertions and 12 public-surface assertions pass in CI
+- The CLI runs the full flow: init → answer → status → gap → roadmap → scan → generate → publish
 - Real PDFs (140–166 KB) and valid OOXML DOCX files are produced on disk
 - The scanner parses TypeScript, Python and Go and maps findings to articles
-- The API serves all 22 endpoints with auth, rate limiting and quota enforcement
-- The web app builds 10 static routes; the docs site prerenders 7 pages
-- Docker Compose defines 4 services with healthchecks
+- The API serves 40 routes behind a single global auth gate, with rate limiting and quota enforcement
+- Tenant isolation is enforced and regression-tested: a signed-in user cannot address another company by path, query, body or header
+- The web app builds 11 static routes; the docs site prerenders 12 pages
+- Docker Compose defines 5 services; the API image runs as a non-root user
 
 **Not built — deliberately scoped out:**
 
@@ -510,8 +656,9 @@ node packages/api/scripts/e2e.mjs http://localhost:4000
 - Password reset, email verification and transactional email.
 - OAuth / SSO. Email + password only.
 - Server-side sessions. JWT in `localStorage`; appropriate for a single-tenant self-hosted install, not for a shared multi-tenant SaaS without adding refresh tokens and httpOnly cookies.
-- Multi-tenancy beyond one company per user.
+- Multi-tenancy beyond one company per user. Isolation between tenants is enforced; a user still cannot belong to more than one.
 - Webhooks and scheduled re-assessment.
+- A signed desktop installer. `pnpm desktop` runs a local server instead; see [Desktop GUI](#desktop-gui).
 
 **Known limitations:**
 

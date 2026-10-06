@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Chromium for PDF rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends chromium-browser fonts-liberation
+        continue-on-error: true
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Secret scan
+        run: node scripts/scan-secrets.js --all
+
+      # A tagged release must not depend on CI having passed earlier: tags can
+      # be pushed for any commit. Re-run the gates here so a bad tag cannot
+      # publish artefacts.
+      - name: Type check
+        run: pnpm --filter @complisme/shared run build && pnpm -r --workspace-concurrency=1 --filter '!@complisme/web' --filter '!@complisme/docs' run typecheck
+
+      - name: Security audit
+        run: pnpm run audit
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build the packages
+        run: pnpm run build:node
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+
+      - name: Security posture
+        run: pnpm run security:posture
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+
+      - name: Smoke test document generation
+        run: |
+          mkdir -p out
+          node packages/cli/dist/cli.js --dir ./smoke init --demo
+          node packages/cli/dist/cli.js --dir ./smoke generate --kind gdpr-dpia --format pdf --out ./out
+          node packages/cli/dist/cli.js --dir ./smoke generate --kind ai-act-annex-iv --format docx --out ./out
+          ls -la out
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+
+      - name: Create the release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            out/*.pdf
+            out/*.docx

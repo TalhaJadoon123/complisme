@@ -250,13 +250,13 @@ async function main() {
   check('documents carry version history', documents.body.documents?.[0]?.versions?.length >= 1);
 
   // 12. Scanner --------------------------------------------------------------
-  const scan = await call('POST', '/api/v1/scan', { path: 'packages/scanner/src/demo-fixtures.ts' });
+  const scan = await call('POST', '/api/v1/scan', { path: 'packages/scanner/src/demo-fixtures.ts' }, token);
   check('POST /scan returns findings', scan.body.findings?.length > 5, scan.body.findings?.length);
   check('POST /scan maps findings to articles', scan.body.findings?.[0]?.mappings?.length > 0);
   check('POST /scan derives compliance gaps', scan.body.gaps?.length > 0);
   check('POST /scan reports a summary', typeof scan.body.summary?.total === 'number');
 
-  const traversal = await call('POST', '/api/v1/scan', { path: '../../../../etc' });
+  const traversal = await call('POST', '/api/v1/scan', { path: '../../../../etc' }, token);
   check('scan path traversal is blocked', traversal.status === 400, traversal.body);
 
   // 13. AI -------------------------------------------------------------------
@@ -269,8 +269,19 @@ async function main() {
   check('POST /subscription changes the plan', sub.body.subscription?.plan === 'starter', sub.body);
 
   // 15. Errors ---------------------------------------------------------------
-  const missing = await call('GET', '/api/v1/does-not-exist');
-  check('unknown routes return a 404 body', missing.status === 404 && missing.body.error === 'not_found');
+  // Authenticated, so the request reaches the router: the global auth gate
+  // answers anonymous callers with 401 before routing happens, which would
+  // mask the 404 behaviour this is checking.
+  const missing = await call('GET', '/api/v1/does-not-exist', undefined, token);
+  check('unknown routes return a 404 body', missing.status === 404 && missing.body.error === 'not_found', missing.body);
+
+  // And the gate itself, checked anonymously.
+  const anon = await call('GET', '/api/v1/does-not-exist');
+  check(
+    'anonymous callers are refused before routing',
+    anon.status === 401 && anon.body.error === 'unauthorized',
+    anon.body,
+  );
 
   const badAssess = await call('POST', '/api/v1/assess', { nope: true }, token);
   check('invalid payloads are rejected with 400', badAssess.status === 400, badAssess.body);

@@ -44,7 +44,11 @@ jobs:
 
       - name: Scan packages
         run: |
+          # A compliance report is informational, so a non-zero scan must not
+          # fail the pipeline. But a crash (missing build, bad path) must: `|| true`
+          # swallowed those too, so check that a report was actually produced.
           node packages/scanner/scripts/scan-repo.js . scan.json || true
+          test -s scan.json || { echo "::error::scanner produced no report"; exit 1; }
           cat scan.json
 
       - name: Upload findings
@@ -56,9 +60,12 @@ jobs:
 
       # Files gaps as GitHub issues. Idempotent: an issue carrying the same
       # issue key is never created twice, so a re-run produces no duplicates.
+      # `continue-on-error` rather than `|| true` so a genuine failure is
+      # visible in the run summary instead of being swallowed.
       - name: Publish gaps as issues
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: node packages/scanner/scripts/publish-findings.js scan.json || true
+        run: node packages/scanner/scripts/publish-findings.js scan.json

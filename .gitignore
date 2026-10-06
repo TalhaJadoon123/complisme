@@ -21,6 +21,11 @@ Thumbs.db
 # Artefacts produced by `complisme generate` when run without --out.
 *.pdf
 *.docx
+# Scanner reports written by scripts/scan-repo.js.
+/scan.json
+/scan-*.json
+/reports/
+/out/
 
 # Local CLI workspace and the Docker scan mount.
 /.complisme/
