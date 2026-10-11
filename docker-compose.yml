@@ -58,7 +58,9 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
+      NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
+      NOWPAYMENTS_SANDBOX: ${NOWPAYMENTS_SANDBOX:-true}
     volumes:
       - documents:/data/documents
       # Mount the code you want to scan. Read-only: the scanner never writes.

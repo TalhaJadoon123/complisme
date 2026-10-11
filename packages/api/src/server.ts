@@ -1227,9 +1227,9 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     const scope = companyId ?? (request.headers['x-company-id'] as string | undefined);
     if (!scope) return reply.code(400).send({ error: 'missing_company', message: 'Pass x-company-id', statusCode: 400 });
 
-    // Without STRIPE_SECRET_KEY the API runs in "no billing" mode and the change
+    // Without NOWPAYMENTS_API_KEY the API runs in "no billing" mode and the change
     // is applied directly. That is what makes self-hosting and local dev work.
-    const billingEnabled = !!process.env.STRIPE_SECRET_KEY;
+    const billingEnabled = !!process.env.NOWPAYMENTS_API_KEY;
     const subscription = await repository.setSubscription(
       scope,
       parsed.data.plan,
@@ -1239,7 +1239,7 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
       subscription,
       billingEnabled,
       note: billingEnabled
-        ? 'Plan updated.'
+        ? 'Plan updated. Payment will be processed via NowPayments.'
         : 'Billing is not configured on this deployment; the plan was applied directly. This is the intended behaviour for self-hosted installs.',
     };
   });

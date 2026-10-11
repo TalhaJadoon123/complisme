@@ -266,9 +266,9 @@ export PUPPETEER_EXECUTABLE_PATH="$(node -e "console.log(require('puppeteer').ex
 
 | Variable | Notes |
 |---|---|
-| `STRIPE_SECRET_KEY` | Enables real billing |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
-| `STRIPE_PRICE_STARTER` / `_BUSINESS` / `_ENTERPRISE` | Price ids |
+| `NOWPAYMENTS_API_KEY` | Enables real billing via NowPayments |
+| `NOWPAYMENTS_IPN_SECRET` | IPN signature verification |
+| `NOWPAYMENTS_SANDBOX` | Set to `false` for production |
 
 Without these, `POST /api/v1/subscription` applies the plan directly and reports `billingEnabled: false`. That is the correct behaviour for self-hosted installs, where the operator is the billing department.
 
@@ -316,10 +316,10 @@ Everything below is optional. None of it is required to run the product.
 
 ### To take payments
 
-- [ ] Stripe account and keys
+- [ ] NowPayments account and keys
 - [ ] Create three products (Starter €49, Business €149, Enterprise custom)
-- [ ] Set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_*`
-- [ ] Implement the webhook handler at `POST /api/v1/billing/webhook` (not built — see below)
+- [ ] Set `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `NOWPAYMENTS_SANDBOX=false`
+- [ ] Configure IPN callback URL in NowPayments dashboard: `https://your-domain/api/v1/billing/nowpayments/webhook` (not built — see below)
 
 ### Domain and email
 
@@ -339,7 +339,8 @@ Everything below is optional. None of it is required to run the product.
 | `ANTHROPIC_API_KEY` | Optional | Same, via Anthropic |
 | `OLLAMA_BASE_URL` | Optional | Same, locally, no data leaves your network |
 | `PUPPETEER_EXECUTABLE_PATH` | Optional | PDF rendering; the Docker image already has Chromium |
-| `STRIPE_SECRET_KEY` | Optional | Subscription billing |
+| `NOWPAYMENTS_API_KEY` | Optional | Subscription billing via NowPayments |
+| `NOWPAYMENTS_IPN_SECRET` | Optional | NowPayments IPN verification |
 | `DATABASE_URL` | Optional in dev | PostgreSQL; omit for the in-memory store |
 | `AUTH_SECRET` | **Required in production** | Token signing; generate your own |
 
