@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "src/__tests__/**"],
+  "references": [{ "path": "../shared" }, { "path": "../frameworks" }, { "path": "../core" }]
+}

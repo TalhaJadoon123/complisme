@@ -1,0 +1,457 @@
+﻿id: csrd
+name: Corporate Sustainability Reporting Directive
+shortName: CSRD / ESRS
+version: "Directive (EU) 2022/2464 + ESRS (EU) 2023/2772 as amended by Directive (EU) 2025/794"
+jurisdiction: European Union / EEA
+regulator: National transposition measures + EFRAG / Commission
+authorityUrl: https://finance.ec.europa.eu/capital-markets-union-and-financial-markets/company-reporting-and-auditing/company-reporting/corporate-sustainability-reporting_en
+enforcementDate: "2025-01-01"
+smeApplicable: true
+description: >
+  CSRD requires companies and groups above the size thresholds to publish a sustainability
+  statement following ESRS standards, with a double materiality assessment (impact materiality
+  and financial materiality), a digital, machine-readable tagging of the report and external
+  assurance. Following the Omnibus simplification (Directive (EU) 2025/794), companies with
+  more than 1750 employees (and groups above â‚¬500M net turnover) are the main reporters for
+  financial years starting in 2027, with a wave of 750+ employee companies from 2028 and an
+  opt-in for smaller companies. Member States may create a voluntary simplified standard for
+  micro and small companies â€” this framework covers that route as well.
+tags:
+  - sustainability
+  - esrs
+  - reporting
+  - double-materiality
+articles:
+  - id: esrs-2-general-information
+    title: "ESRS 2 â€” General information, value chain and own workforce"
+    description: >
+      The administrative baseline: reporting entity, value chain, business model, materiality
+      process, sustainability-related risks and opportunities, transition plan, metrics and targets.
+      Applies to every sustainability statement, and the materiality process itself must be
+      described (including the process used).
+    reference: "ESRS 2 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 1.5
+    tags: [structure, materiality]
+    evidenceRequired:
+      - Statement of the reporting boundary and consolidation method
+      - Materiality assessment documentation (sources, stakeholders, scoring)
+      - Value chain description and value-chain policies
+      - Transition plan / climate targets with baselines and progress
+    questionnaire:
+      - id: esrs2-q1
+        text: Is the reporting perimeter (entities, value chain, exclusions) documented?
+        type: single
+        weight: 2
+        citation: ESRS 2 IRO-1, IRO-2
+        effort: 4
+        remediation: Define the consolidation perimeter and list value-chain exclusions with a rationale.
+        options:
+          - value: documented
+            label: Documented
+            satisfies: true
+          - value: partial
+            label: Partially
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+      - id: esrs2-q2
+        text: Is there a documented double materiality process with stakeholder engagement records?
+        type: single
+        weight: 2.5
+        citation: ESRS 2 IRO-1, ESRS 1 SBM
+        effort: 8
+        remediation: "Run a structured materiality workshop: sources, stakeholder list, impact/financial matrix, validation."
+        options:
+          - value: documented
+            label: Documented with stakeholder record
+            satisfies: true
+          - value: informal
+            label: Informal
+            satisfies: false
+          - value: no
+            label: No process
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” below CSRD thresholds and not using the voluntary SME standard
+            notApplicable: true
+      - id: esrs2-q3
+        text: Are value chain (upstream/downstream) policies described?
+        type: boolean
+        weight: 1.5
+        citation: ESRS 2 IRO-05
+        effort: 4
+        remediation: Add supplier code of conduct, screening process and a short value-chain statement.
+      - id: esrs2-q4
+        text: Are sustainability-related targets, baselines and progress metrics published?
+        type: boolean
+        weight: 2
+        citation: ESRS 2 IRO-08
+        effort: 5
+        remediation: Define 3-5 targets with baseline year, scope and annual progress; avoid undated ambitions.
+
+  - id: esrs-s1-own-workforce
+    title: "ESRS S1 â€” Own workforce"
+    description: >
+      Social metrics on the company's own workforce: headcount by gender and country, turnover,
+      training hours, collective bargaining coverage, health and safety incidents, and diversity
+      of governance bodies.
+    reference: "ESRS S1 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 2
+    tags: [social, workforce]
+    evidenceRequired:
+      - Workforce statistics by gender, age band, country and employment type
+      - Incident and safety records (LTIFR, fatalities)
+      - Training hours and collective bargaining coverage evidence
+      - Diversity of governance body
+    questionnaire:
+      - id: esrs-s1-q1
+        text: Are workforce metrics (headcount by gender/country, turnover, training hours) collected and auditable?
+        type: single
+        weight: 2
+        citation: ESRS S1-6, S1-8, S1-13
+        effort: 6
+        remediation: Extract HRIS data into a reproducible table; store the export as evidence with a date.
+        options:
+          - value: audited
+            label: Collected with underlying data
+            satisfies: true
+          - value: estimated
+            label: Estimated, not reproducible
+            satisfies: false
+          - value: no
+            label: Not collected
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” no employees (owner-only company)
+            notApplicable: true
+      - id: esrs-s1-q2
+        text: Are health and safety incidents recorded and the rates calculated?
+        type: boolean
+        weight: 1.5
+        citation: ESRS S1-14
+        effort: 3
+        remediation: Maintain an incident register and compute recordable incident frequency rate.
+      - id: esrs-s1-q3
+        text: Is diversity of the governance body reported (gender, independence, tenure)?
+        type: boolean
+        weight: 1
+        citation: ESRS S1-17
+        effort: 2
+        remediation: Add a governance diversity table to the report.
+      - id: esrs-s1-q4
+        text: Is there a health & safety and psychosocial-risk policy for the workforce?
+        type: boolean
+        weight: 1.5
+        citation: ESRS S1-3
+        effort: 3
+        remediation: Publish the occupational health and safety policy and a mental-health support channel.
+
+  - id: esrs-s2-workers-value-chain
+    title: "ESRS S2 â€” Workers in the value chain"
+    description: >
+      Metrics on workers outside the company's own workforce who materially affect its value:
+      their health and safety, working conditions and collective bargaining.
+    reference: "ESRS S2 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 1
+    tags: [social, value-chain]
+    evidenceRequired:
+      - Supplier worker-safety data or contractual commitments
+      - Screening/audit procedure for value-chain workers
+      - Coverage statement where data is unavailable (with the plan to obtain it)
+    questionnaire:
+      - id: esrs-s2-q1
+        text: Are working conditions of value-chain workers assessed (safety, hours, labour rights)?
+        type: single
+        weight: 2
+        citation: ESRS S2-1, S2-3
+        effort: 6
+        remediation: Add labour clauses to supplier contracts and request basic safety data from tier-1 suppliers.
+        options:
+          - value: assessed
+            label: Assessed with data or contractual clauses
+            satisfies: true
+          - value: partial
+            label: Partially
+            satisfies: false
+          - value: no
+            label: Not assessed
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” negligible value-chain workforce exposure
+            notApplicable: true
+      - id: esrs-s2-q2
+        text: Where value-chain data is missing, is the gap explained with a plan and a deadline?
+        type: boolean
+        weight: 1
+        citation: ESRS 2 IRO-05, ESRS S2
+        effort: 2
+        remediation: Write the "estimate by analogy" note explaining how the figure was derived.
+
+  - id: esrs-e1-climate
+    title: "ESRS E1 â€” Climate change"
+    description: >
+      GHG emissions (own operations Scope 1 & 2, and value chain Scope 3 categories 1-15), climate
+      transition risks and opportunities, climate scenarios and targets, internal carbon pricing and
+      energy consumption mix.
+    reference: "ESRS E1 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 2.5
+    tags: [climate, emissions]
+    evidenceRequired:
+      - GHG inventory by scope and category with methodology and emission factors
+      - Activity data with invoices, meter readings, fuel records
+      - Climate risk assessment and scenario analysis (e.g. NGFS scenarios)
+      - Transition plan and targets with interim milestones
+    questionnaire:
+      - id: esrs-e1-q1
+        text: Are Scope 1 and Scope 2 emissions measured with documented methodology and primary data?
+        type: single
+        weight: 3
+        citation: ESRS E1-5, GHG Protocol
+        effort: 10
+        remediation: Collect fuel, electricity and refrigerant data for 24 months; apply the GHG Protocol with stated factors.
+        options:
+          - value: primary-data
+            label: Primary activity data + factors documented
+            satisfies: true
+          - value: factors-only
+            label: Default factors only
+            satisfies: false
+          - value: none
+            label: Not measured
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” below thresholds and not using the voluntary standard
+            notApplicable: true
+      - id: esrs-e1-q2
+        text: Are relevant Scope 3 categories screened and the material ones quantified?
+        type: single
+        weight: 2
+        citation: ESRS E1-6
+        effort: 12
+        remediation: Screen all 15 categories, then compute the material ones (purchased goods, use of sold products, upstream transport are the usual ones).
+        options:
+          - value: screened-and-quantified
+            label: Screened and quantified
+            satisfies: true
+          - value: screened
+            label: Screened, some estimated
+            satisfies: false
+          - value: no
+            label: Not screened
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” below thresholds
+            notApplicable: true
+      - id: esrs-e1-q3
+        text: Is a climate risk/opportunity assessment with scenario analysis documented?
+        type: boolean
+        weight: 2
+        citation: ESRS E1-4
+        effort: 6
+        remediation: Run a two-scenario analysis (NGFS orderly / disorderly) on your top three risks.
+      - id: esrs-e1-q4
+        text: Are climate targets set with a clear baseline, scope and interim milestones?
+        type: boolean
+        weight: 2
+        citation: ESRS E1-5
+        effort: 4
+        remediation: Commit to absolute Scope 1&2 reduction with base year, target year and 2-3 interim milestones.
+      - id: esrs-e1-q5
+        text: Is internal carbon pricing applied to investment decisions?
+        type: boolean
+        weight: 1
+        citation: ESRS E1-7
+        effort: 3
+        remediation: Apply a shadow carbon price (e.g. â‚¬150/t) to capex proposals and document it.
+
+  - id: esrs-e2-5-resources
+    title: "ESRS E2, E3, E4 & E5 â€” Circular economy, water, resource use and climate transition"
+    description: >
+      ESRS E2 (circular economy: materials in, waste out), E3 (water: consumption and discharge),
+      E4 (resources: resource use, energy consumption and mix, renewables share) and E5
+      (resource efficiency, circular economy assessment for products and services).
+    reference: "ESRS E2-E5 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 1.75
+    tags: [environment, circular-economy]
+    evidenceRequired:
+      - Materials and waste quantities with recycling/diversion rates
+      - Water withdrawal and discharge data with locations in stress areas
+      - Energy consumption (MWh) by source and renewable share
+      - Circularity KPI for the main product/service
+    questionnaire:
+      - id: esrs-e4-q1
+        text: Is total energy consumption (MWh) by source measured, with renewable share disclosed?
+        type: boolean
+        weight: 2
+        citation: ESRS E4-2, E4-6
+        effort: 4
+        remediation: Request the annual energy statement from the utility and convert kWh to MWh.
+      - id: esrs-e3-q1
+        text: Is water consumption measured and discharge assessed, including water-stressed sites?
+        type: boolean
+        weight: 1.5
+        citation: ESRS E3-2, E3-4
+        effort: 4
+        remediation: Collect meter data for owned sites; document water-stressed-area exposure using the WRI Aqueduct map.
+      - id: esrs-e2-q1
+        text: Are material inputs and waste outputs quantified with recycling or reuse rates?
+        type: boolean
+        weight: 1.5
+        citation: ESRS E2-4, E2-5
+        effort: 5
+        remediation: Get waste transfer notes and weigh the main streams; compute the recycling rate.
+      - id: esrs-e5-q1
+        text: Is a circularity metric defined for the main product or service?
+        type: boolean
+        weight: 1
+        citation: ESRS E5-1
+        effort: 3
+        remediation: Define one KPI (e.g. % of revenue from circular/recirculating business model) and track it.
+
+  - id: esrs-g1-governance
+    title: "ESRS G1 â€” Governance and business conduct"
+    description: >
+      Governance structure, board composition and expertise, sustainability oversight, codes of
+      conduct and anti-corruption, and the diversity of governance bodies.
+    reference: "ESRS G1 (Delegated Regulation (EU) 2023/2772)"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 2
+    tags: [governance]
+    evidenceRequired:
+      - Board/executive governance chart and sustainability responsibilities
+      - Sustainability expertise of the governing body
+      - Code of conduct, anti-corruption and whistleblowing procedure
+      - Convictions/incidents register
+    questionnaire:
+      - id: esrs-g1-q1
+        text: Is the governance structure documented, with responsibility for sustainability assigned?
+        type: boolean
+        weight: 2
+        citation: ESRS G1-1
+        effort: 3
+        remediation: Publish an org chart with named sustainability ownership in the executive team.
+      - id: esrs-g1-q2
+        text: Does the governing body have documented sustainability expertise (training or dedicated knowledge)?
+        type: boolean
+        weight: 1.5
+        citation: ESRS G1-1
+        effort: 2
+        remediation: Record board ESG training, or appoint a sustainability lead reporting to the board.
+      - id: esrs-g1-q3
+        text: Is a code of conduct and anti-corruption policy in place, with a whistleblowing channel?
+        type: boolean
+        weight: 2
+        citation: ESRS G1-3
+        effort: 4
+        remediation: Adopt a code of conduct, an anti-bribery policy and an anonymous reporting channel.
+      - id: esrs-g1-q4
+        text: Are confirmed misconducts and their remediation reported?
+        type: boolean
+        weight: 1.5
+        citation: ESRS G1-3
+        effort: 2
+        remediation: Keep a register of cases (zero is a reportable number) with outcomes.
+
+  - id: csrd-assurance-and-digitisation
+    title: "CSRD Articles 28-31 & ESRS 1 â€” External assurance and digital tagging"
+    description: >
+      The sustainability statement is subject to limited (and eventually reasonable) assurance
+      by an independent auditor, must be published in a digital machine-readable format, and is
+      subject to the "double check" of CSRD Art. 28, which allows Member States to ask for a
+      consistency check with the financial statements.
+    reference: "Directive (EU) 2022/2464, Art. 28-32; ESRS 1"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 2
+    tags: [assurance, digital]
+    evidenceRequired:
+      - Engagement letter with the assurance provider
+      - Evidence of the auditor review of process, controls and data sources
+      - Digital tagging statement (which ESRS datapoints are tagged)
+      - Publication evidence with approval signature
+    questionnaire:
+      - id: csrd-q1
+        text: Is the sustainability statement subject to external assurance as required (limited at minimum)?
+        type: single
+        weight: 2.5
+        citation: CSRD Art. 26(1), Art. 34
+        effort: 6
+        remediation: Appoint an assurance provider early â€” capacity is scarce; prepare an evidence pack of source data.
+        options:
+          - value: limited
+            label: Limited assurance obtained
+            satisfies: true
+          - value: engagement
+            label: Engagement signed, first assurance pending
+            satisfies: false
+          - value: no
+            label: No assurance
+            satisfies: false
+          - value: n/a
+            label: Not applicable â€” below thresholds / voluntary SME standard route
+            notApplicable: true
+      - id: csrd-q2
+        text: Is the report digitally tagged with ESRS datapoints (machine-readable)?
+        type: boolean
+        weight: 1.5
+        citation: CSRD Art. 32
+        effort: 4
+        remediation: Tag the ESRS table in the ESEF/XBRL format or provide a structured appendix.
+      - id: csrd-q3
+        text: Is the management-approved statement formally signed and filed with the competent authority?
+        type: boolean
+        weight: 2
+        citation: CSRD Art. 30(1)
+        effort: 2
+        remediation: Add a board approval minute and file through the national registry.
+
+  - id: csrd-internal-controls
+    title: "Internal controls, data governance and reporting process"
+    description: >
+      Reporting quality depends on controls: data ownership, source systems, estimation methods,
+      the double check with the financial statements, error correction policy and consolidation
+      tooling. This is where auditors focus first.
+    reference: "CSRD Art. 28; ESRS 2 BP-2, BP-3"
+    deadline: "2027-01-01"
+    fineExposure: 3000000
+    weight: 1.5
+    tags: [controls, data]
+    evidenceRequired:
+      - Reporting timetable with owners and RACI
+      - Data lineage map per ESRS datapoint
+      - Estimation method documentation and approval
+      - Consolidation tool / spreadsheet with review controls
+    questionnaire:
+      - id: csrd-q4
+        text: Does each ESRS datapoint have a named owner, a defined source and a documented estimation method?
+        type: boolean
+        weight: 2
+        citation: ESRS 2 BP-2
+        effort: 8
+        remediation: "Build the datapoint register: ID, standard, value, source system, owner, method, review status."
+      - id: csrd-q5
+        text: Is the consistency ("double check") with the financial statements performed and documented?
+        type: boolean
+        weight: 1.5
+        citation: CSRD Art. 28(2)
+        effort: 4
+        remediation: Reconcile energy, employee and cost data with the accounts and record the reconciliation.
+      - id: csrd-q6
+        text: Is there a correction/omission policy for restatements of previously published information?
+        type: boolean
+        weight: 1
+        citation: ESRS 1 BP-2
+        effort: 2
+        remediation: Document the restatement procedure and keep a version log of the report.

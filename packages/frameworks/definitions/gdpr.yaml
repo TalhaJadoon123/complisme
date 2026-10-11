@@ -1,0 +1,528 @@
+id: gdpr
+name: General Data Protection Regulation
+shortName: GDPR
+version: "Regulation (EU) 2016/679"
+jurisdiction: European Union / EEA
+regulator: National Data Protection Authorities (EDPB)
+authorityUrl: https://gdpr-info.eu
+enforcementDate: "2018-05-25"
+smeApplicable: true
+description: >
+  The GDPR applies to every organisation that processes personal data. The daily compliance work
+  is the record of processing activities (Art. 30), data protection impact assessments (Art. 35),
+  data subject request handling (Art. 12-22), processor contracts (Art. 28), security of processing
+  (Art. 32) and breach notification (Art. 33-34). Maximum fines reach €20M or 4% of global
+  annual turnover, whichever is higher.
+tags:
+  - privacy
+  - pii
+  - data-protection
+articles:
+  - id: art-5-principles
+    title: "Article 5 — Principles of processing"
+    description: >
+      Lawfulness, fairness, transparency, purpose limitation, data minimisation, accuracy,
+      storage limitation, integrity and confidentiality, and accountability. Accountability is
+      the principle that generates paperwork: you must be able to demonstrate compliance.
+    reference: "Regulation (EU) 2016/679, Art. 5"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 2
+    tags: [core-obligation]
+    evidenceRequired:
+      - Privacy notice(s) published and versioned
+      - Data minimisation review per processing activity
+      - Storage limitation policy with concrete retention periods
+      - Internal accountability record (who owns each principle)
+    questionnaire:
+      - id: a5-q1
+        text: Is a lawful basis defined and documented for every processing activity?
+        type: single
+        weight: 3
+        citation: Art. 5(1)(a), Art. 6
+        effort: 5
+        remediation: Generate the ROPA with a legal-basis column and fill it for each activity; contract is a strong default for B2B.
+        options:
+          - value: documented
+            label: Yes — documented per activity
+            satisfies: true
+          - value: partial
+            label: Some activities covered
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+      - id: a5-q2
+        text: Are retention periods defined per data category, with automated deletion or archiving?
+        type: single
+        weight: 2.5
+        citation: Art. 5(1)(e)
+        effort: 4
+        remediation: Define retention per category (e.g. invoices 10 years, CVs 6 months, logs 12 months) and automate deletion where possible.
+        options:
+          - value: defined-and-automated
+            label: Defined and automated
+            satisfies: true
+          - value: defined
+            label: Defined on paper only
+            satisfies: false
+          - value: no
+            label: Not defined
+            satisfies: false
+      - id: a5-q3
+        text: Is a layered privacy notice published and kept up to date?
+        type: boolean
+        weight: 2
+        citation: Art. 5(1)(a), Art. 13, Art. 14
+        effort: 3
+        remediation: Publish a short layered notice (website, app, SaaS) and record the version and date.
+      - id: a5-q4
+        text: Are automated decision-making and profiling activities identified and documented?
+        type: boolean
+        weight: 1.5
+        citation: Art. 5(1)(d), Art. 22
+        effort: 3
+        remediation: List every scoring, ranking or profiling activity in the ROPA with the logic explained.
+
+  - id: art-6-legal-basis
+    title: "Article 6 — Lawfulness of processing"
+    description: >
+      Processing needs one of six legal bases. Consent is rarely the right choice in B2B; contract,
+      legal obligation and legitimate interest usually are. Special categories need an Art. 9(2)
+      exception on top.
+    reference: "Regulation (EU) 2016/679, Art. 6, Art. 9"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 2
+    tags: [legal-basis]
+    evidenceRequired:
+      - Legal-basis register per processing activity
+      - Art. 9(2) exception where special-category data is processed
+      - Legitimate interest assessments (LIA) for Art. 6(1)(f)
+    questionnaire:
+      - id: a6-q1
+        text: Is consent used only where it is genuinely freely given, specific, informed and withdrawable?
+        type: boolean
+        weight: 1.5
+        citation: Art. 6(1)(a), Art. 7
+        effort: 3
+        remediation: Audit consent flows; pre-ticked boxes and bundled consent are invalid under the GDPR.
+      - id: a6-q2
+        text: Is a legitimate interest assessment written down for every Art. 6(1)(f) processing activity?
+        type: boolean
+        weight: 2
+        citation: Art. 6(1)(f), Recital 47
+        effort: 3
+        remediation: Use the three-step LIA template (purpose, necessity, balancing) for anti-spam, analytics and B2B prospecting.
+      - id: a6-q3
+        text: Is special-category data processed only under a documented Art. 9(2) exception?
+        type: boolean
+        weight: 2
+        citation: Art. 9
+        effort: 4
+        remediation: Map health, biometric, union, political and criminal-conviction data separately; explicit consent is the only broadly usable exception for SMEs.
+      - id: a6-q4
+        text: Are vendors processing data on your behalf bound by a compliant Art. 28 DPA?
+        type: single
+        weight: 2.5
+        citation: Art. 28(3)
+        effort: 6
+        remediation: Generate a DPA from the template and send it to every sub-processor; keep signed copies.
+        options:
+          - value: signed
+            label: Yes — signed for all processors
+            satisfies: true
+          - value: pending
+            label: Some pending
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no external processing
+            notApplicable: true
+
+  - id: art-7-repudation
+    title: "Articles 7, 8 & 12-22 — Consent and data subject rights"
+    description: >
+      Records of consent, the right to withdraw, the right not to be subject to automated decisions
+      and the operational workflow to answer access, deletion, rectification, restriction,
+      portability and objection requests within one month.
+    reference: "Regulation (EU) 2016/679, Art. 7, 12-22"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 2.25
+    tags: [data-subject-rights, dsr]
+    evidenceRequired:
+      - Consent records (timestamp, version of notice, mechanism)
+      - DSR intake channel and procedure with SLA tracking
+      - Identity verification procedure
+      - Template responses (access, erasure, objection)
+    questionnaire:
+      - id: a7-q1
+        text: Is there a documented, tested process to answer data subject requests within one month?
+        type: single
+        weight: 3
+        citation: Art. 12(3)
+        effort: 5
+        remediation: Name a DSR owner, build a request log with an SLA column, and rehearse one access request end to end.
+        options:
+          - value: tested
+            label: Documented and rehearsed
+            satisfies: true
+          - value: documented
+            label: Documented, not tested
+            satisfies: false
+          - value: no
+            label: Ad-hoc only
+            satisfies: false
+      - id: a7-q2
+        text: Can data be exported in a structured, commonly used format (portability)?
+        type: boolean
+        weight: 1.5
+        citation: Art. 20
+        effort: 3
+        remediation: Document an export path (CSV/JSON/API) per system of record.
+      - id: a7-q3
+        text: Is there a mechanism to propagate erasure requests to all processors and backups?
+        type: boolean
+        weight: 1.5
+        citation: Art. 17
+        effort: 3
+        remediation: Maintain a processor list with erasure SLAs written into each DPA.
+      - id: a7-q4
+        text: Is an objection channel available for direct marketing and profiling?
+        type: boolean
+        weight: 1
+        citation: Art. 21
+        effort: 2
+        remediation: Add an "object" link in every marketing email and honour it immediately.
+
+  - id: art-13-14-transparency
+    title: "Articles 13 & 14 — Information to be provided"
+    description: >
+      Data subjects must be told who you are, on what basis, how long you keep data, who receives
+      it, which transfers happen and what rights they have — at collection time and where data was
+      obtained indirectly.
+    reference: "Regulation (EU) 2016/679, Art. 13, Art. 14"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 1.5
+    tags: [transparency]
+    evidenceRequired:
+      - Privacy notice with version, date and channels
+      - Notice review when processing changes
+      - Justification for exemptions from information (Art. 14(5))
+    questionnaire:
+      - id: a13-q1
+        text: Does the privacy notice contain the full Art. 13 information set (identity, purposes, recipients, transfers, retention, rights)?
+        type: boolean
+        weight: 2.5
+        citation: Art. 13
+        effort: 3
+        remediation: Generate the notice with `complisme generate --kind consent-notice` and have it reviewed by counsel.
+      - id: a13-q2
+        text: Are indirect-collection notices (Art. 14) used where data comes from third parties (e.g. purchased lists)?
+        type: boolean
+        weight: 1.5
+        citation: Art. 14
+        effort: 2
+        remediation: Send the notice within one month or at first contact, and record the exemption where used.
+      - id: a13-q3
+        text: Does the notice list international transfers and the safeguard used?
+        type: boolean
+        weight: 2
+        citation: Art. 13(1)(f), Chapter V
+        effort: 2
+        remediation: Add a transfers table naming the country and the mechanism (adequacy, SCCs, BCRs).
+
+  - id: art-25-32-security
+    title: "Articles 25, 32 & 34 — Privacy by design, security and breach notification"
+    description: >
+      Appropriate technical and organisational measures (encryption, pseudonymisation, access
+      control, resilience, testing) and a 72-hour breach notification duty with documentation
+      of every breach, even the ones not notified.
+    reference: "Regulation (EU) 2016/679, Art. 25, Art. 32, Art. 33, Art. 34"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 2.5
+    tags: [security, breach]
+    evidenceRequired:
+      - Information security policy and TOMs document
+      - Encryption at rest and in transit with key management description
+      - Access control matrix and review records
+      - "Breach register: date, scope, categories, decision, notification reference"
+    questionnaire:
+      - id: a25-q1
+        text: Are privacy-by-design measures applied (minimisation, default settings, pseudonymisation)?
+        type: boolean
+        weight: 2
+        citation: Art. 25
+        effort: 4
+        remediation: Add data-minimisation review to each new feature review and set privacy-friendly defaults.
+      - id: a32-q1
+        text: Is personal data encrypted at rest and in transit, with keys managed separately?
+        type: boolean
+        weight: 2.5
+        citation: Art. 32(1)(a)
+        effort: 5
+        remediation: Enable TLS everywhere, encrypt managed databases and document the KMS responsibility split.
+      - id: a32-q2
+        text: Are access rights to personal data reviewed periodically?
+        type: boolean
+        weight: 2
+        citation: Art. 32(1)(b), Art. 25
+        effort: 2
+        remediation: Run a quarterly access review and keep the export as evidence.
+      - id: a32-q3
+        text: Are security measures tested (penetration test, vulnerability scanning, restore test)?
+        type: boolean
+        weight: 1.5
+        citation: Art. 32(1)(d)
+        effort: 6
+        remediation: Schedule an annual penetration test and document the remediation plan; also rehearse the restore.
+      - id: a33-q1
+        text: Is there a breach register documenting every personal data breach, with 72-hour notification decisions?
+        type: single
+        weight: 2.5
+        citation: Art. 33, Art. 34
+        effort: 4
+        remediation: Create a breach register with a severity decision tree and a notification template; rehearse once.
+        options:
+          - value: register-and-template
+            label: Register + template, rehearsed
+            satisfies: true
+          - value: register
+            label: Register exists
+            satisfies: false
+          - value: no
+            label: No register
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no breaches occurred
+            satisfies: true
+
+  - id: art-30-ropa
+    title: "Article 30 — Records of processing activities (ROPA)"
+    description: >
+      A controller must maintain a written record of processing activities under its responsibility.
+      Organisations with fewer than 250 employees must keep it if processing is not occasional,
+      is likely to risk individuals, or includes special-category or criminal-conviction data.
+    reference: "Regulation (EU) 2016/679, Art. 30"
+    deadline: "2018-05-25"
+    fineExposure: 10000000
+    weight: 2.25
+    tags: [ropa, core-obligation]
+    evidenceRequired:
+      - ROPA covering every processing activity with purposes, categories, recipients, transfers and retention
+      - Evidence of regular review (date, reviewer)
+    questionnaire:
+      - id: a30-q1
+        text: Does a complete record of processing activities exist and is it reviewed at least annually?
+        type: single
+        weight: 3
+        citation: Art. 30
+        effort: 5
+        remediation: Generate the ROPA from your company profile and processing activities; schedule an annual review reminder.
+        options:
+          - value: complete-and-reviewed
+            label: Complete and reviewed
+            satisfies: true
+          - value: complete
+            label: Complete, never reviewed
+            satisfies: false
+          - value: partial
+            label: Partial coverage
+            satisfies: false
+          - value: no
+            label: Does not exist
+            satisfies: false
+          - value: n/a
+            label: Not applicable — occasional low-risk processing only
+            notApplicable: true
+      - id: a30-q2
+        text: Does the ROPA cover sub-processors and international transfers?
+        type: boolean
+        weight: 2
+        citation: Art. 30(1)(d)
+        effort: 2
+        remediation: Add two columns (sub-processors, transfer countries + safeguard) to your ROPA.
+
+  - id: art-35-dpia
+    title: "Article 35 — Data protection impact assessment"
+    description: >
+      A DPIA is mandatory where processing is likely to result in a high risk: systematic and
+      extensive profiling with legal effects, large-scale special-category processing, or
+      large-scale systematic monitoring of public areas. It must be consulted on with the DPO.
+    reference: "Regulation (EU) 2016/679, Art. 35, Art. 36"
+    evidenceRequired:
+      - "DPIA in the Art. 35(7) structure: systematic description, necessity/proportionality, risks, measures"
+      - DPO opinion and its treatment
+      - Residual-risk decision and, if high, prior consultation (Art. 36) evidence
+    questionnaire:
+      - id: a35-q1
+        text: Has a DPIA been completed for high-risk processing (profiling, AI, large-scale monitoring, sensitive data)?
+        type: single
+        weight: 3
+        citation: Art. 35
+        effort: 10
+        remediation: Generate the DPIA with `complisme generate --kind gdpr-dpia`; involve the DPO early and keep the decision record.
+        options:
+          - value: complete
+            label: Complete with DPO opinion
+            satisfies: true
+          - value: draft
+            label: Draft
+            satisfies: false
+          - value: required-missing
+            label: Required but missing
+            satisfies: false
+          - value: not-required
+            label: Reviewed and not required
+            satisfies: true
+          - value: unknown
+            label: Unknown whether required
+            satisfies: false
+      - id: a35-q2
+        text: Was the data protection officer consulted, or documented why consultation was not possible?
+        type: boolean
+        weight: 2
+        citation: Art. 35(2)
+        effort: 1
+        remediation: Add a "DPO consulted" block with date and opinion reference to the DPIA template.
+      - id: a35-q3
+        text: Are the mitigations implemented, measured and evidenced?
+        type: boolean
+        weight: 2
+        citation: Art. 35(7)(d)
+        effort: 5
+        remediation: Convert each mitigation into a task with an owner and attach a screenshot or log as evidence.
+
+  - id: art-37-dpo
+    title: "Articles 37-39 — Data protection officer and cooperation"
+    description: >
+      A DPO is mandatory for public authorities, regular and systematic monitoring on a large scale,
+      or large-scale processing of special-category data. The DPO must be independent, resourced and
+      involved in advice, monitoring and training.
+    reference: "Regulation (EU) 2016/679, Art. 37, 38, 39"
+    deadline: "2018-05-25"
+    fineExposure: 10000000
+    weight: 1.5
+    tags: [governance]
+    evidenceRequired:
+      - DPO appointment letter or documented shared-service arrangement
+      - Published DPO contact details
+      - DPO work plan / advice log
+    questionnaire:
+      - id: a37-q1
+        text: Is a DPO appointed where required, with published contact details and direct management access?
+        type: single
+        weight: 2
+        citation: Art. 37, Art. 39(2)
+        effort: 3
+        remediation: Appoint a DPO (external/shared DPO is acceptable for SMEs) and publish the contact in the privacy notice.
+        options:
+          - value: appointed
+            label: Internal DPO appointed and published
+            satisfies: true
+          - value: external
+            label: External/shared DPO appointed
+            satisfies: true
+          - value: not-required
+            label: Reviewed and not required
+            satisfies: true
+          - value: required-missing
+            label: Required but missing
+            satisfies: false
+          - value: unknown
+            label: Unknown
+            satisfies: false
+
+  - id: art-44-49-transfers
+    title: "Chapter V (Art. 44-49) — International transfers"
+    description: >
+      Transfers outside the EEA need a transfer tool (adequacy decision, standard contractual
+      clauses, binding corporate rules) plus, for Art. 46 transfers, a transfer impact assessment.
+      Schrems II invalidated the Privacy Shield; the EU-US Data Privacy Framework now covers
+      certified US recipients only.
+    reference: "Regulation (EU) 2016/679, Art. 44-49, Commission Implementing Decision (EU) 2021/914"
+    deadline: "2018-05-25"
+    fineExposure: 15000000
+    weight: 1.75
+    tags: [transfers]
+    evidenceRequired:
+      - "Transfer register: recipient, country, tool, TIA reference"
+      - SCCs signed with the correct annexes and supplementary measures
+      - Transfer impact assessment for supplementary measures
+    questionnaire:
+      - id: a44-q1
+        text: Is there a complete register of international transfers of personal data?
+        type: single
+        weight: 2.5
+        citation: Art. 30(1)(d), Art. 44
+        effort: 4
+        remediation: Inventory US vendors, remote access from non-EEA support staff and CRMs hosted outside the EEA.
+        options:
+          - value: complete
+            label: Complete register with tools
+            satisfies: true
+          - value: partial
+            label: Partial
+            satisfies: false
+          - value: no
+            label: None
+            satisfies: false
+          - value: n/a
+            label: Not applicable — all data stays in the EEA
+            notApplicable: true
+      - id: a44-q2
+        text: Are SCCs (2021/914) signed for all non-adequate transfers, including annexes and TOMs?
+        type: boolean
+        weight: 2
+        citation: Art. 46(2)(c)
+        effort: 4
+        remediation: Use the module that fits (2 for controller-to-processor), complete Annexes I-III, sign.
+      - id: a44-q3
+        text: Has a transfer impact assessment been performed for the transfer countries?
+        type: boolean
+        weight: 1.5
+        citation: Art. 46, Schrems II
+        effort: 3
+        remediation: Use the EDPB TIA template and record supplementary measures.
+
+  - id: art-83-penalties
+    title: "Article 83 — Penalties and corrective powers"
+    description: >
+      Administrative fines up to €20M or 4% of worldwide annual turnover for the highest breaches.
+      SMEs must not be fined more than the lower of the two amounts; supervisory authorities may
+      take corrective powers, order processing bans and suspend transfers.
+    reference: "Regulation (EU) 2016/679, Art. 83"
+    deadline: "2018-05-25"
+    fineExposure: 20000000
+    weight: 1
+    tags: [penalties]
+    evidenceRequired:
+      - Board-level risk acceptance memo referencing fine exposure
+      - Record of supervisory authority correspondence
+    questionnaire:
+      - id: a83-q1
+        text: Has the worst-case fine exposure been modelled and communicated to management?
+        type: boolean
+        weight: 1.5
+        citation: Art. 83(5)
+        effort: 2
+        remediation: Add the fine exposure column from this assessment to your quarterly compliance report.
+      - id: a83-q2
+        text: Is there a documented procedure for handling a supervisory authority request or inspection?
+        type: boolean
+        weight: 1
+        citation: Art. 58, Art. 83
+        effort: 2
+        remediation: Name a contact, an escalation ladder and an evidence-preservation checklist.
+      - id: a83-q3
+        text: Has the company assessed whether a representative in an EU member state is required?
+        type: boolean
+        weight: 1
+        citation: Art. 27
+        effort: 2
+        remediation: Non-EU controllers offering goods or monitoring people in the EU need an Art. 27 representative.

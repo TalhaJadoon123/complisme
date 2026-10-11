@@ -1,0 +1,831 @@
+id: eu-ai-act
+name: EU Artificial Intelligence Act
+shortName: EU AI Act
+version: "Regulation (EU) 2024/1689 (AI Act)"
+jurisdiction: European Union
+regulator: National market surveillance authorities / AI Office
+authorityUrl: https://artificialintelligenceact.eu
+enforcementDate: "2026-08-02"
+smeApplicable: true
+description: >
+  The AI Act regulates placing on the market, putting into service and using AI systems in
+  the Union. It is risk-based: prohibited practices apply since 2 February 2025, governance
+  and GPAI duties since 2 August 2025, and the general application date is 2 August 2026.
+  High-risk systems (Annex III) require a risk management system, data governance, technical
+  documentation (Annex IV), automatic logging, human oversight, accuracy and cybersecurity,
+  plus registration and, for certain use cases, a fundamental rights impact assessment.
+  SMEs benefit from a simplified technical documentation model (Annex IV) and from the
+  priority sandbox access and fee reductions for small mid-caps.
+tags:
+  - ai
+  - risk-management
+  - documentation
+  - smp
+articles:
+  - id: art-4-ai-literacy
+    title: "Article 4 — AI literacy of providers and deployers"
+    description: >
+      Providers and deployers must take measures to ensure a sufficient level of AI literacy of
+      staff and persons dealing with AI systems on their behalf.
+    reference: "Regulation (EU) 2024/1689, Art. 4"
+    deadline: "2025-02-02"
+    fineExposure: 15000000
+    weight: 1
+    tags: [governance, smp]
+    evidenceRequired:
+      - AI literacy policy or training charter, approved by management
+      - "Training records: who was trained, on what, when, with which result"
+      - Role matrix naming the AI owners in each team
+      - Onboarding and refreshment schedule (at least annual)
+    questionnaire:
+      - id: a4-q1
+        text: Do you have a documented AI literacy programme covering every team that develops, buys or uses AI?
+        type: single
+        weight: 2
+        citation: Art. 4
+        effort: 3
+        remediation: >
+          Adopt a one-page AI literacy policy, run a 90-minute training session for every team that
+          touches AI, keep the attendance list, and schedule annual refreshers.
+        options:
+          - value: documented-programme
+            label: Documented programme with training records
+            satisfies: true
+          - value: ad-hoc
+            label: Ad-hoc training without records
+            satisfies: false
+          - value: none
+            label: No training at all
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no AI systems in use
+            notApplicable: true
+      - id: a4-q2
+        text: Are people operating the AI systems instructed on their limitations and on how to interpret output?
+        type: single
+        weight: 1.5
+        citation: Art. 4
+        effort: 2
+        remediation: Add a "how to use this model responsibly" section to the onboarding pack of each AI-enabled role.
+        options:
+          - value: yes
+            label: Yes, documented in runbooks
+            satisfies: true
+          - value: partial
+            label: Partially
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+      - id: a4-q3
+        text: Does the company keep records of training completion per person?
+        type: boolean
+        weight: 1
+        citation: Art. 4
+        effort: 1
+        remediation: Keep an attendance spreadsheet or LMS export; it is the cheapest evidence for an audit.
+
+  - id: art-5-prohibited-practices
+    title: "Article 5 — Prohibited AI practices"
+    description: >
+      Subliminal manipulation, exploitation of vulnerabilities, social scoring, untargeted scraping
+      of facial images, emotion recognition at work or school, biometric categorisation and
+      predictive policing are banned. Fines up to €35M or 7% of worldwide annual turnover.
+    reference: "Regulation (EU) 2024/1689, Art. 5 and Annex III of Dir. (EU) 2024/1689"
+    deadline: "2025-02-02"
+    fineExposure: 35000000
+    weight: 2
+    tags: [prohibitions, red-lines]
+    evidenceRequired:
+      - Inventory of AI use cases with an explicit prohibited-practice check per use case
+      - Written statement signed by management that no prohibited practice is in use
+      - Screening of AI vendors against Article 5 before procurement
+    questionnaire:
+      - id: a5-q1
+        text: Has every AI use case in the company been screened against the Article 5 prohibitions?
+        type: single
+        weight: 2
+        citation: Art. 5
+        effort: 4
+        remediation: >
+          Run a 20-minute screening per use case with the checklist in the AI Act Annex III prohibition
+          list and record the outcome in the AI inventory.
+        options:
+          - value: all-screened
+            label: All use cases screened and recorded
+            satisfies: true
+          - value: some
+            label: Some use cases screened
+            satisfies: false
+          - value: none
+            label: No screening
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no AI systems
+            notApplicable: true
+      - id: a5-q2
+        text: Does the company use emotion recognition or biometric categorisation of people at work or in education?
+        type: boolean
+        weight: 2
+        citation: Art. 5(1)(f)
+        effort: 0
+        remediation: >
+          Stop the use case immediately and remove it from the inventory. This is a criminal-exposure
+          red line, not a paperwork gap.
+        showIf:
+          questionId: a5-q1
+          equals:
+            - all-screened
+            - some
+            - none
+      - id: a5-q3
+        text: Are AI vendors checked for Article 5 compliance before signature?
+        type: boolean
+        weight: 1.5
+        citation: Art. 5, Art. 25
+        effort: 2
+        remediation: Add an AI-specific data protection and prohibited-practices annex to supplier contracts.
+
+  - id: art-6-classification
+    title: "Article 6 — Classification of AI systems as high-risk"
+    description: >
+      A system is high-risk when it is a safety component of a regulated product, or when it falls
+      under an Annex III use case (biometrics, critical infrastructure, education, employment,
+      essential services, law enforcement, migration, justice, elections).
+    reference: "Regulation (EU) 2024/1689, Art. 6 and Annex III"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2.5
+    tags: [classification, scoping]
+    evidenceRequired:
+      - AI inventory with a classification decision and rationale per system
+      - Annex III cross-check matrix
+      - Record of any classification dispute or supplier declaration of high-risk status
+    questionnaire:
+      - id: a6-q1
+        text: Is there a documented list of all AI systems with a high-risk classification decision per system?
+        type: single
+        weight: 2.5
+        citation: Art. 6
+        effort: 5
+        remediation: >
+          Build the AI inventory (system, purpose, domain, users, output) and add a column for the
+          Annex III category with a one-sentence rationale per system.
+        options:
+          - value: documented
+            label: Documented inventory with rationale
+            satisfies: true
+          - value: partial
+            label: Inventory exists, rationale missing
+            satisfies: false
+          - value: none
+            label: No inventory
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no AI systems
+            notApplicable: true
+      - id: a6-q2
+        text: Are high-risk decisions reviewed when the intended purpose of a system changes?
+        type: boolean
+        weight: 1
+        citation: Art. 6(3)
+        effort: 1
+        remediation: Add a "purpose change" trigger to your change-management checklist.
+
+  - id: art-9-risk-management
+    title: "Article 9 — Risk management system"
+    description: >
+      Providers of high-risk AI systems must establish, implement, document and maintain a
+      continuous risk management system covering identification, analysis, estimation and
+      mitigation of risks, with post-market feedback feeding back into it.
+    reference: "Regulation (EU) 2024/1689, Art. 9"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2.5
+    tags: [risk-management, core-obligation]
+    evidenceRequired:
+      - Risk management policy approved by management
+      - Risk register with likelihood, impact, mitigation and residual risk
+      - Traceability from each identified risk to a control and to a test/evidence item
+      - Post-market monitoring feedback loop
+    questionnaire:
+      - id: a9-q1
+        text: Does a documented, lifecycle-wide risk management system exist for every high-risk AI system?
+        type: single
+        weight: 3
+        citation: Art. 9(1)
+        effort: 10
+        remediation: >
+          Start from the generated risk register: 8-12 risks per system (data, model, human oversight,
+          cybersecurity, misuse, drift, third-party dependency), each with mitigation and owner.
+        options:
+          - value: lifecycle-system
+            label: Yes — lifecycle-wide, documented, maintained
+            satisfies: true
+          - value: point-in-time
+            label: Yes — one-off assessment before launch
+            satisfies: false
+          - value: none
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+      - id: a9-q2
+        text: Are post-market incidents and near-misses fed back into the risk register?
+        type: boolean
+        weight: 1.5
+        citation: Art. 9(8)
+        effort: 3
+        remediation: Add an incident field to your ticketing tool and a monthly 30-minute risk review.
+      - id: a9-q3
+        text: Are residual risks documented together with the justification for accepting them?
+        type: boolean
+        weight: 1.5
+        citation: Art. 9(2)
+        effort: 2
+        remediation: Add "residual risk / accepted by / date / expiry" columns to the risk register.
+      - id: a9-q4
+        text: Are foreseeable misuse scenarios considered (e.g. prompt injection, off-label use)?
+        type: single
+        weight: 2
+        citation: Art. 9(2)(c)
+        effort: 4
+        remediation: Add a misuse section to the risk assessment with 3-5 realistic abuse scenarios per system.
+
+  - id: art-10-data-governance
+    title: "Article 10 — Data and data governance"
+    description: >
+      Training, validation and testing datasets must be relevant, sufficiently representative,
+      and to the best extent possible free of errors and complete. Special-category or personal
+      data requires appropriate safeguards and, for biometric data, a strict necessity and
+      consent analysis.
+    reference: "Regulation (EU) 2024/1689, Art. 10"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2
+    tags: [data, bias]
+    evidenceRequired:
+      - "Datasheet per dataset: source, size, collection period, licence/consent basis"
+      - Bias and representativeness assessment with metrics per protected group
+      - Cleansing, annotation and deduping procedure
+      - GDPR Art. 9 legal basis analysis when special categories are used
+    questionnaire:
+      - id: a10-q1
+        text: Is there a documented data governance process for training/validation/testing datasets?
+        type: single
+        weight: 2.5
+        citation: Art. 10(1)-(2)
+        effort: 8
+        remediation: Produce a datasheet per dataset and a written data governance procedure covering source, quality, bias and retention.
+        options:
+          - value: documented
+            label: Documented procedure and datasheets
+            satisfies: true
+          - value: informal
+            label: Informal practice
+            satisfies: false
+          - value: none
+            label: No process
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no custom training
+            notApplicable: true
+      - id: a10-q2
+        text: Have datasets been examined for biases affecting protected groups, with results documented?
+        type: boolean
+        weight: 2
+        citation: Art. 10(5)
+        effort: 6
+        remediation: Run a group-level error-rate analysis and record the outcome in the datasheet.
+      - id: a10-q3
+        text: Where special-category personal data is used, is there an Art. 9(2) exception documented?
+        type: boolean
+        weight: 2
+        citation: Art. 10(3), GDPR Art. 9
+        effort: 4
+        remediation: Record which Art. 9(2) letter you rely on, and the safeguards applied.
+      - id: a10-q4
+        text: Is the provenance of data obtained from third parties known and lawful?
+        type: single
+        weight: 2
+        citation: Art. 10(2)
+        effort: 4
+        remediation: Keep supplier licences or scraping authorisations in the dataset folder.
+        options:
+          - value: documented
+            label: Yes — licence/consent on file
+            satisfies: true
+          - value: partial
+            label: Partially known
+            satisfies: false
+          - value: no
+            label: Unknown origin
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no third-party data
+            notApplicable: true
+
+  - id: art-11-12-documentation-and-logs
+    title: "Articles 11 & 12 — Technical documentation and record-keeping"
+    description: >
+      High-risk providers must draw up technical documentation before placing the system on the
+      market, keep it up to date, and ensure automatic logging of events over the lifetime,
+      enabling traceability to at least six years after last use.
+    reference: "Regulation (EU) 2024/1689, Art. 11, Art. 12, Annex IV"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2
+    tags: [documentation, traceability]
+    evidenceRequired:
+      - Annex IV technical documentation file, versioned and dated
+      - Data quality statement, information for downstream providers
+      - Log retention configuration proving 6-year traceability
+      - Version history of the model and prompt changes
+    questionnaire:
+      - id: a11-q1
+        text: Does Annex IV technical documentation exist for each high-risk AI system?
+        type: single
+        weight: 2.5
+        citation: Art. 11, Annex IV
+        effort: 6
+        remediation: Generate the Annex IV document with `complisme generate --kind ai-act-annex-iv` and complete the factual sections from your system logs.
+        options:
+          - value: complete
+            label: Complete and versioned
+            satisfies: true
+          - value: draft
+            label: Draft only
+            satisfies: false
+          - value: none
+            label: Does not exist
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+      - id: a11-q2
+        text: Is automatic event logging enabled with at least six years of traceability?
+        type: boolean
+        weight: 2
+        citation: Art. 12
+        effort: 4
+        remediation: Enable structured audit logging (prompt, output, user, timestamp, model version) and set retention to 6 years.
+      - id: a11-q3
+        text: Are model and prompt changes recorded with a version and a reason?
+        type: boolean
+        weight: 1.5
+        citation: Art. 11(1)(a)
+        effort: 2
+        remediation: Adopt semantic versioning for prompts and model ids, and log every change with a one-line justification.
+
+  - id: art-13-transparency
+    title: "Article 13 — Transparency and provision of information to deployers"
+    description: >
+      Providers must enable deployers to understand what the system does, comply with instructions,
+      interpret output, ensure human oversight and reach out to the provider. Deployers of systems
+      interacting with people must inform those people that they interact with AI.
+    reference: "Regulation (EU) 2024/1689, Art. 13 and Art. 50"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 1.75
+    tags: [transparency, deployers]
+    evidenceRequired:
+      - Instructions for use (IFU) delivered to deployers
+      - Disclosure texts shown to end users where applicable
+      - Interpretation guidance for non-technical staff
+    questionnaire:
+      - id: a13-q1
+        text: Are deployers given written instructions covering use, limitations, oversight and reporting?
+        type: boolean
+        weight: 2
+        citation: Art. 13
+        effort: 4
+        remediation: Publish a 2-page instructions-for-use per system and attach it to the vendor contract and internal wiki.
+      - id: a13-q2
+        text: Are end users told when they interact with an AI system (chatbot, synthetic content)?
+        type: single
+        weight: 2
+        citation: Art. 50(1)
+        effort: 3
+        remediation: Add a clear, prominent disclosure ("You are chatting with an AI assistant…") to every AI touchpoint.
+        options:
+          - value: yes
+            label: Yes — disclosed at every touchpoint
+            satisfies: true
+          - value: partial
+            label: Only in the terms of service
+            satisfies: false
+          - value: no
+            label: No disclosure
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no direct user interaction
+            notApplicable: true
+      - id: a13-q3
+        text: Is AI-generated content labelled as artificially generated or manipulated?
+        type: boolean
+        weight: 2
+        citation: Art. 50(2)
+        effort: 2
+        remediation: Add machine-readable provenance metadata and a visible label to generated media.
+
+  - id: art-14-human-oversight
+    title: "Article 14 — Human oversight"
+    description: >
+      High-risk systems must be designed so natural persons can effectively oversee them, including
+      by understanding limitations, monitoring automation, interrupting (stop button / override) and
+      deciding not to use the output.
+    reference: "Regulation (EU) 2024/1689, Art. 14"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2
+    tags: [human-oversight, operational]
+    evidenceRequired:
+      - "Oversight design description: who watches what, with which competence"
+      - Ability to interpret, interrupt and override, demonstrated in a test report
+      - Training records for the overseeing staff
+    questionnaire:
+      - id: a14-q1
+        text: Can a competent person interrupt or override the system in production?
+        type: single
+        weight: 2.5
+        citation: Art. 14(4)(e)
+        effort: 5
+        remediation: Implement a kill switch and an override path, then write a test report proving both work.
+        options:
+          - value: tested
+            label: Yes — implemented and tested
+            satisfies: true
+          - value: partial
+            label: Partially (e.g. only at application level)
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+      - id: a14-q2
+        text: Are the people responsible for oversight trained on the system's limitations?
+        type: boolean
+        weight: 1.5
+        citation: Art. 14(4)(a)
+        effort: 2
+        remediation: Fold a limitations walkthrough into the AI literacy training and keep the records.
+      - id: a14-q3
+        text: Does the interface make it clear that a human is accountable for the decision?
+        type: boolean
+        weight: 1
+        citation: Art. 14(4)(d)
+        effort: 2
+        remediation: Label the approving role in the workflow and state the accountability in the runbook.
+
+  - id: art-15-accuracy-robustness
+    title: "Article 15 — Accuracy, robustness and cybersecurity"
+    description: >
+      High-risk systems must achieve appropriate levels of accuracy, robustness and cybersecurity,
+      be resilient to errors, inconsistencies and unexpected situations, and prevent reasonably
+      foreseeable misuse. Accuracy targets must be declared and measured.
+    reference: "Regulation (EU) 2024/1689, Art. 15"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 2
+    tags: [quality, security]
+    evidenceRequired:
+      - Declared accuracy/robustness metrics with test results and test set description
+      - Adversarial and prompt-injection test report
+      - Secure development lifecycle evidence, patch cadence, vulnerability disclosure process
+    questionnaire:
+      - id: a15-q1
+        text: Are accuracy and robustness targets declared and validated against a documented test set?
+        type: single
+        weight: 2.5
+        citation: Art. 15(1)
+        effort: 6
+        remediation: Define the metric (e.g. F1 ≥ 0.85 for ticket triage), build the evaluation set and store the report.
+        options:
+          - value: validated
+            label: Yes — declared, tested, stored
+            satisfies: true
+          - value: qualitative
+            label: Only qualitative statements
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+      - id: a15-q2
+        text: Has the system been tested against prompt injection, data poisoning and adversarial input?
+        type: boolean
+        weight: 2
+        citation: Art. 15(4)
+        effort: 5
+        remediation: Run a red-team pass with the free OWASP LLM Top 10 checklist and archive the findings.
+      - id: a15-q3
+        text: Is there a secure development lifecycle with a vulnerability disclosure process?
+        type: boolean
+        weight: 1.5
+        citation: Art. 15(4)-(6)
+        effort: 4
+        remediation: Add a security section to the SDLC and publish a security.txt / responsible disclosure contact.
+
+  - id: art-26-deployers
+    title: "Article 26 — Obligations of deployers of high-risk AI systems"
+    description: >
+      Deployers must use systems according to instructions, assign competent human oversight,
+      monitor operation, report incidents and keep logs, and inform workers' representatives and
+      affected workers before putting an AI system into service in the workplace.
+    reference: "Regulation (EU) 2024/1689, Art. 26"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 1.75
+    tags: [deployer, employment]
+    evidenceRequired:
+      - Deployer policy assigning oversight roles
+      - Worker and worker-representative notification records
+      - Incident reporting log and escalation procedure
+    questionnaire:
+      - id: a26-q1
+        text: Are deployer obligations (instructions, oversight, monitoring, logs, incident reporting) contractually or procedurally assigned?
+        type: single
+        weight: 2
+        citation: Art. 26
+        effort: 5
+        remediation: Add a deployer obligation checklist per AI system and a named owner per obligation.
+        options:
+          - value: assigned
+            label: Assigned and evidenced
+            satisfies: true
+          - value: partial
+            label: Partially
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — not a deployer
+            notApplicable: true
+      - id: a26-q2
+        text: If an AI system is used in the workplace, have workers and their representatives been informed?
+        type: boolean
+        weight: 2
+        citation: Art. 26(7)
+        effort: 3
+        remediation: Send an information notice covering purpose, categories of data, automation and the right to object.
+
+  - id: art-27-fria
+    title: "Article 27 — Fundamental rights impact assessment (deployers)"
+    description: >
+      Public bodies and deployers of certain Annex III(5)(b)-(c) systems (creditworthiness, life and
+      health insurance pricing, emergency call dispatch, biometric identification) must perform a
+      fundamental rights impact assessment before first use.
+    reference: "Regulation (EU) 2024/1689, Art. 27 and Annex V"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 1.5
+    tags: [fria, fundamental-rights]
+    evidenceRequired:
+      - Completed FRIA in the Annex V structure
+      - Consultation record with affected parties / worker representatives
+      - Mitigation plan and residual-risk decision signed by management
+    questionnaire:
+      - id: a27-q1
+        text: Is a fundamental rights impact assessment required for your AI use cases, and is it complete?
+        type: single
+        weight: 2
+        citation: Art. 27, Annex V
+        effort: 8
+        remediation: Generate the FRIA with `complisme generate --kind ai-act-annex-iv --section fria` and have it signed off.
+        options:
+          - value: complete
+            label: Required and complete
+            satisfies: true
+          - value: required-missing
+            label: Required but missing
+            satisfies: false
+          - value: not-required
+            label: Not required for our use cases
+            satisfies: true
+          - value: unknown
+            label: Not assessed whether it is required
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no AI systems
+            notApplicable: true
+      - id: a27-q2
+        text: Were affected parties or worker representatives consulted?
+        type: boolean
+        weight: 1
+        citation: Art. 27(5)
+        effort: 3
+        remediation: Document the consultation (questionnaire, meeting minutes, comments addressed).
+
+  - id: art-49-registration
+    title: "Article 49 — Registration of high-risk AI systems"
+    description: >
+      High-risk systems must be registered in the EU database before being placed on the market or
+      put into service. Public-facing systems also need a disclosure that they are AI systems.
+    reference: "Regulation (EU) 2024/1689, Art. 49"
+    deadline: "2026-08-02"
+    fineExposure: 7500000
+    weight: 1
+    tags: [registration, transparency]
+    evidenceRequired:
+      - Confirmation of registration in the EU database with the registration identifier
+      - Conformance declaration reference
+    questionnaire:
+      - id: a49-q1
+        text: Are high-risk AI systems registered in the EU AI database?
+        type: single
+        weight: 2
+        citation: Art. 49(1)
+        effort: 3
+        remediation: Prepare the registration dossier (conformity declaration + Annex IV extract) and file it with the national authority.
+        options:
+          - value: registered
+            label: Yes — registered
+            satisfies: true
+          - value: pending
+            label: Submission pending
+            satisfies: false
+          - value: not-required
+            label: Not required
+            satisfies: true
+          - value: no
+            label: Not registered
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+
+  - id: art-50-transparency-obligations
+    title: "Article 50 — Transparency obligations for certain AI systems"
+    description: >
+      Chatbots must disclose their AI nature; synthetic content must be machine-readably marked;
+      emotion-recognition and biometric-categorisation systems must inform the people concerned.
+      These duties apply from 2 August 2026 and concern deployers as well as providers.
+    reference: "Regulation (EU) 2024/1689, Art. 50"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 1.5
+    tags: [transparency, labelling]
+    evidenceRequired:
+      - Disclosure screenshots/strings per AI touchpoint
+      - Technical marking method for synthetic media
+      - Change log for the disclosure texts
+    questionnaire:
+      - id: a50-q1
+        text: Do all AI touchpoints disclose that the user is interacting with an AI system, in clear and timely manner?
+        type: single
+        weight: 2
+        citation: Art. 50(1)
+        effort: 3
+        remediation: Add the disclosure string to every chatbot entry point and to generated emails; keep a screenshot folder as evidence.
+        options:
+          - value: yes
+            label: Yes — every touchpoint
+            satisfies: true
+          - value: partial
+            label: Some touchpoints
+            satisfies: false
+          - value: no
+            label: No
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no AI touchpoints
+            notApplicable: true
+      - id: a50-q2
+        text: Is synthetic audio, image, video or text output marked in a machine-readable way?
+        type: boolean
+        weight: 1.5
+        citation: Art. 50(2)
+        effort: 4
+        remediation: Embed C2PA / Content Credentials metadata and keep a generation log.
+      - id: a50-q3
+        text: Are people informed before emotion recognition or biometric categorisation is applied to them?
+        type: boolean
+        weight: 1.5
+        citation: Art. 50(3)
+        effort: 2
+        remediation: Add a first-run notice and log the acknowledgement.
+
+  - id: art-72-post-market-monitoring
+    title: "Article 72 — Post-market monitoring and serious incident reporting"
+    description: >
+      Providers must set up a post-market monitoring system and report serious incidents within
+      15 days (10 days for widespread infringement or serious harm) to the market surveillance
+      authorities. Deployers must escalate incidents they observe.
+    reference: "Regulation (EU) 2024/1689, Art. 72 and Art. 73"
+    deadline: "2026-08-02"
+    fineExposure: 15000000
+    weight: 1.5
+    tags: [monitoring, incidents]
+    evidenceRequired:
+      - Post-market monitoring plan with metrics and frequency
+      - Incident classification procedure (serious / non-serious)
+      - Report templates and evidence of notification
+    questionnaire:
+      - id: a72-q1
+        text: Is there a post-market monitoring plan with defined metrics, owners and frequency?
+        type: single
+        weight: 2
+        citation: Art. 72(1)
+        effort: 5
+        remediation: Define 4-6 metrics (accuracy drift, override rate, complaints, uptime), an owner and a monthly review.
+        options:
+          - value: documented
+            label: Documented plan
+            satisfies: true
+          - value: informal
+            label: Informal monitoring
+            satisfies: false
+          - value: no
+            label: None
+            satisfies: false
+          - value: n/a
+            label: Not applicable — no high-risk AI systems
+            notApplicable: true
+      - id: a72-q2
+        text: Is there a documented procedure to report serious incidents within 15 days?
+        type: boolean
+        weight: 2
+        citation: Art. 73
+        effort: 3
+        remediation: Add an incident severity decision tree and a "who notifies the authority" contact card.
+
+  - id: art-86-ai-office-gpai
+    title: "Article 53 & 55 — General-purpose AI model obligations (for downstream SMEs)"
+    description: >
+      Providers of GPAI models carry the bulk of these duties (technical documentation, copyright
+      policy, training-data summary). SMEs deploying a GPAI model mostly need the upstream
+      documentation and their own downstream risk management.
+    reference: "Regulation (EU) 2024/1689, Art. 51-55"
+    deadline: "2025-08-02"
+    fineExposure: 15000000
+    weight: 0.75
+    tags: [gpai, upstream]
+    evidenceRequired:
+      - Model card / upstream technical documentation of the GPAI provider used
+      - Copyright and data-usage summary from the provider
+      - Downstream fine-tuning assessment (does fine-tuning make you a provider?)
+    questionnaire:
+      - id: a53-q1
+        text: Is the upstream documentation of the GPAI models you use available in your evidence folder?
+        type: boolean
+        weight: 1
+        citation: Art. 53(1)(b)
+        effort: 1
+        remediation: Download the model card and the training-data summary for each GPAI model you rely on.
+      - id: a53-q2
+        text: If you fine-tune a GPAI model, have you assessed whether you become a "provider" of a high-risk system?
+        type: boolean
+        weight: 1.5
+        citation: Art. 25(1)(a)
+        effort: 4
+        remediation: Document the fine-tuning decision and its regulatory consequence in the AI inventory.
+        showIf:
+          questionId: a4-q1
+          equals:
+            - documented-programme
+            - ad-hoc
+            - none
+
+  - id: art-99-governance-penalties
+    title: "Article 99 & 100 — Governance, penalties and SME support"
+    description: >
+      Every provider and deployer needs an internal governance contact point for the AI Act.
+      Penalties scale with turnover; SMEs pay the lower of the two caps. Art. 62 provides
+      priority access to sandboxes and regulatory sandboxes for small mid-caps.
+    reference: "Regulation (EU) 2024/1689, Art. 62, Art. 99, Art. 100"
+    deadline: "2026-08-02"
+    fineExposure: 7500000
+    weight: 1
+    tags: [governance, penaltiess]
+    evidenceRequired:
+      - Named AI governance owner and deputy
+      - Escalation path to the management body
+      - Record of sandbox / SME support requests
+    questionnaire:
+      - id: a99-q1
+        text: Is there a named governance owner accountable for AI Act compliance?
+        type: boolean
+        weight: 2
+        citation: Art. 99(3)
+        effort: 1
+        remediation: Name one accountable person and one deputy in an AOG decision record; SMEs may combine roles.
+      - id: a99-q2
+        text: Have the applicable penalties been modelled for the worst realistic case?
+        type: boolean
+        weight: 1
+        citation: Art. 99(4)
+        effort: 2
+        remediation: Use the fine-exposure figures in this assessment to build the board-level risk memo.
+      - id: a99-q3
+        text: Has the company considered national sandbox or SME simplification schemes?
+        type: boolean
+        weight: 0.5
+        citation: Art. 62
+        effort: 1
+        remediation: Check the national competent authority page — support is free and reduces paperwork.

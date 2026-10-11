@@ -1,0 +1,114 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: read-only contents by default.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # No `version:` input here on purpose. pnpm/action-setup@v4 fails with
+      # "Multiple versions of pnpm specified" when `version` is also set in
+      # package.json's `packageManager` field, which made every run abort at
+      # setup before a single test ran. `packageManager` is the single pin.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The auditor reports which advisories are reachable from application code
+      # rather than failing on unpatchable dev-only tooling.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # A secret that reaches history is unrecoverable, so scan every tracked
+      # file before anything else. gitleaks is the usual tool; this repo has no
+      # external binary dependency, so it ships its own equivalent.
+      - name: Secret scan
+        run: node scripts/scan-secrets.js --all
+
+      - name: Security audit
+        run: pnpm run audit
+
+      - name: Type check
+        run: pnpm --filter @complisme/shared run build && pnpm -r --workspace-concurrency=1 --filter '!@complisme/web' --filter '!@complisme/docs' run typecheck
+
+      - name: Unit and integration tests
+        run: pnpm test
+
+      - name: Coverage
+        run: pnpm run test:coverage
+
+      - name: Build
+        run: pnpm run build:node
+
+      # These three gate the deploy on the defects found in release review:
+      #  - check-auth-secret   : refuses to boot on the published dev secret
+      #  - sweep-unauthenticated: every private route 401s without credentials
+      #  - sweep-public          : the public surface still answers anonymously
+      # They use in-process injection, so no listening socket is required.
+      - name: Security posture
+        run: pnpm run security:posture
+
+      - name: API end-to-end
+        run: |
+          node packages/api/dist/main.js &
+          API_PID=$!
+          # Give the server time to bind and to warm its capability probes.
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:4000/health > /dev/null; then break; fi
+            sleep 1
+          done
+          node packages/api/scripts/e2e.mjs http://127.0.0.1:4000
+          STATUS=$?
+          kill $API_PID 2>/dev/null || true
+          exit $STATUS
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  build-web:
+    name: Build web app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --filter @complisme/shared run build
+      - run: pnpm --filter @complisme/frameworks run build
+      - run: pnpm --filter @complisme/core run build
+      - run: pnpm --filter @complisme/generator run build
+      - run: pnpm --filter @complisme/scanner run build
+      - run: pnpm --filter @complisme/llm run build
+      - run: pnpm --filter @complisme/web run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'

@@ -1,0 +1,70 @@
+﻿name: Compliance scan
+
+# Files the scanner's own findings against its own repository, so the rule set
+# is exercised by real code rather than only by fixtures.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths-ignore: ['**.md']
+  schedule:
+    # Mondays, 06:00 UTC.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan and publish compliance gaps
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # No `version:` input: it conflicts with package.json's `packageManager`
+      # field and makes pnpm/action-setup abort. See ci.yml.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build the scanner
+        run: |
+          pnpm --filter @complisme/shared run build
+          pnpm --filter @complisme/frameworks run build
+          pnpm --filter @complisme/core run build
+          pnpm --filter @complisme/scanner run build
+
+      - name: Scan packages
+        run: |
+          # A compliance report is informational, so a non-zero scan must not
+          # fail the pipeline. But a crash (missing build, bad path) must: `|| true`
+          # swallowed those too, so check that a report was actually produced.
+          node packages/scanner/scripts/scan-repo.js . scan.json || true
+          test -s scan.json || { echo "::error::scanner produced no report"; exit 1; }
+          cat scan.json
+
+      - name: Upload findings
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-scan
+          path: scan.json
+          retention-days: 30
+
+      # Files gaps as GitHub issues. Idempotent: an issue carrying the same
+      # issue key is never created twice, so a re-run produces no duplicates.
+      # `continue-on-error` rather than `|| true` so a genuine failure is
+      # visible in the run summary instead of being swallowed.
+      - name: Publish gaps as issues
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node packages/scanner/scripts/publish-findings.js scan.json

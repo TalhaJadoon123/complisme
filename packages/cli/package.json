@@ -1,0 +1,35 @@
+{
+  "name": "@complisme/cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "complisme — multi-framework compliance CLI for SMEs (EU AI Act, CSRD, GDPR, e-invoicing).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "complisme": "dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b tsconfig.json && node scripts/make-bin.js",
+    "typecheck": "tsc -b tsconfig.json",
+    "test": "vitest run",
+    "dev": "tsx src/cli.ts",
+    "complisme": "tsx src/cli.ts",
+    "clean": "rimraf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@complisme/core": "workspace:*",
+    "@complisme/frameworks": "workspace:*",
+    "@complisme/generator": "workspace:*",
+    "@complisme/llm": "workspace:*",
+    "@complisme/scanner": "workspace:*",
+    "@complisme/shared": "workspace:*",
+    "commander": "^12.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
