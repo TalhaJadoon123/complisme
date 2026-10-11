@@ -1,0 +1,111 @@
+# CodeQL Analysis Workflow
+
+## Purpose
+Static Application Security Testing (SAST) for the CompliSME codebase.
+Runs on every push and PR to detect security vulnerabilities in JavaScript/TypeScript code.
+
+## Workflow File
+
+Create `.github/workflows/codeql.yml`:
+
+```yaml
+name: CodeQL Analysis
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Weekly on Mondays at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript, typescript]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Build TypeScript
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm run build:node
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+```
+
+## What It Scans
+
+- SQL injection
+- Cross-site scripting (XSS)
+- Path traversal
+- Insecure deserialization
+- Hardcoded secrets
+- Insecure randomness
+- Weak cryptography
+- And more (security-and-quality query pack)
+
+## Results
+
+- Findings appear in GitHub Security tab
+- SARIF upload for code scanning alerts
+- Runs on every push/PR + weekly schedule
+
+## Configuration
+
+The workflow:
+1. Checks out code
+2. Initializes CodeQL for JS/TS
+3. Installs dependencies and builds
+3. Runs CodeQL analysis
+4. Uploads results to GitHub Security tab
+
+## Customization
+
+To add custom queries:
+```yaml
+- uses: github/codeql-action/init@v3
+  with:
+    languages: ${{ matrix.language }}
+    queries: +security-and-quality, ./custom-queries
+```
+
+To exclude paths:
+```yaml
+- uses: github/codeql-action/init@v3
+  with:
+    languages: ${{ matrix.language }}
+    paths-ignore: |
+      **/node_modules/**
+      **/dist/**
+      **/*.test.ts
+```
+
+## Required Permissions
+
+The workflow needs:
+- `contents: read` - to checkout code
+- `security-events: write` - to upload SARIF results
+
+These are set in the workflow's `permissions` section.

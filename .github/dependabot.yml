@@ -1,0 +1,142 @@
+# Dependabot Configuration
+
+## Purpose
+Automated dependency updates for the CompliSME monorepo.
+
+## Configuration File
+
+Create `.github/dependabot.yml`:
+
+```yaml
+version: 2
+updates:
+  # JavaScript/TypeScript dependencies (pnpm)
+  - package-ecosystem: "pnpm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "pnpm"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "typescript"
+          - "vitest"
+          - "@vitest/*"
+          - "tsx"
+          - "rimraf"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        patterns:
+          - "zod"
+          - "fastify"
+          - "@fastify/*"
+          - "drizzle-orm"
+          - "postgres"
+          - "argon2"
+          - "puppeteer"
+          - "jszip"
+          - "commander"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Root package.json (devDependencies)
+  - package-ecosystem: "pnpm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "root"
+```
+
+## Configuration Details
+
+### Update Groups
+- **dev-dependencies**: Minor/patch updates for TypeScript, Vitest, types
+- **production-dependencies**: Minor/patch for runtime dependencies
+- **github-actions**: Weekly updates for action versions
+- **docker**: Base image updates
+
+### Security
+- Dependabot will create PRs for security advisories immediately (not just on schedule)
+- PRs include security advisory details
+- Auto-merge for patch updates (if CI passes)
+
+### CI Integration
+Dependabot PRs will trigger:
+- Full CI pipeline (ci.yml)
+- Security audit (`pnpm run audit`)
+- Type checking
+- Tests
+
+### Merge Strategy
+- Patch/minor updates: Auto-merge if CI passes
+- Major updates: Manual review required
+- Security patches: Auto-merge if CI passes
+
+## Customization
+
+To ignore specific dependencies:
+```yaml
+ignore:
+  - dependency-name: "puppeteer"
+    versions: ["22.x"]  # Wait for 23.x stability
+```
+
+To adjust update frequency:
+```yaml
+schedule:
+  interval: "daily"  # or "monthly"
+```
+
+## Security Considerations
+
+- Dependabot only updates dependencies within version constraints
+- Major versions require manual review
+- Security patches (CVEs) create immediate PRs
+- Lock file (`pnpm-lock.yaml`) updated atomically with PR

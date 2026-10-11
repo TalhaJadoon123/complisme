@@ -1,0 +1,114 @@
+# Pre-commit Configuration
+
+## Purpose
+Enforce code quality and consistency before commits.
+
+## Configuration
+
+```yaml
+repos:
+  # TypeScript/ESLint
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: TypeScript Type Check
+        entry: pnpm run typecheck
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  - repo: local
+    hooks:
+      - id: test
+        name: Run Tests
+        entry: pnpm test
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # Secret scanning
+  - repo: local
+    hooks:
+      - id: scan-secrets
+        name: Secret Scan
+        entry: node scripts/scan-secrets.js
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # File formatting (if using Prettier)
+  # - repo: https://github.com/prettier/prettier
+  #   rev: "3.2.5"
+  #   hooks:
+  #     - id: prettier
+  #       args: ["--write"]
+  #       files: \.(ts|tsx|js|jsx|json|md|yaml|yml)$
+
+  # Shell script linting (if shell scripts exist)
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: "v0.10.0"
+    hooks:
+      - id: shellcheck
+        args: ["-x"]
+        files: \.sh$
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: "v1.35.1"
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint.yaml"]
+        files: \.(yaml|yml)$
+
+# Configuration for yamllint (create .yamllint.yaml if needed)
+# extends: default
+# rules:
+#   line-length: disable
+#   trailing-spaces: enable
+```
+
+## Installation
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+## Hooks Overview
+
+| Hook | Purpose | When |
+|------|---------|------|
+| `typecheck` | TypeScript compilation check | Every commit |
+| `test` | Run test suite | Every commit |
+| `scan-secrets` | Scan for credentials | Every commit |
+| `shellcheck` | Shell script linting | On .sh files |
+| `yamllint` | YAML linting | On .yaml/.yml files |
+
+## Customization
+
+To skip hooks temporarily:
+```bash
+git commit --no-verify
+```
+
+To run specific hook:
+```bash
+pre-commit run typecheck
+```
+
+## CI Integration
+
+Pre-commit hooks complement CI but don't replace it. CI runs:
+- Full test suite
+- Type checking
+- Security audit
+- Build verification
+- Security posture checks
+
+Pre-commit catches issues early; CI catches everything.
