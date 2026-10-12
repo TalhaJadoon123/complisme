@@ -10,6 +10,9 @@
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
+# Increase fetch timeout for pnpm to avoid network timeouts
+ENV PNPM_FETCH_TIMEOUT=300000
+ENV PNPM_NETWORK_TIMEOUT=300000
 RUN corepack enable && apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/*
@@ -33,7 +36,7 @@ COPY packages/web/package.json          packages/web/
 COPY packages/docs/package.json         packages/docs/
 # Skip postinstall so Puppeteer's Chromium download does not happen here; the
 # system Chromium is installed in the runtime stage instead.
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts --fetch-timeout=300000
 
 
 ###############################################################################
