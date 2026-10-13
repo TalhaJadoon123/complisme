@@ -1,0 +1,48 @@
+rules:
+  - id: hardcoded-secret
+    pattern-either:
+      - pattern: 'password = "..."'
+      - pattern: 'password = "..."'
+      - pattern: 'api_key = "..."'
+      - pattern: 'secret = "..."'
+      - pattern: 'token = "..."'
+    message: Hardcoded secret detected
+    severity: ERROR
+    languages: [python, javascript, typescript]
+    metadata:
+      cwe: "CWE-798"
+  - id: sql-injection
+    pattern: 'execute($SQL + ...)'
+    message: Potential SQL injection
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-89"
+  - id: path-traversal
+    pattern: 'open(... + user_input + ...)'
+    message: Potential path traversal
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-22"
+  - id: xss-via-innerHTML
+    pattern: 'element.innerHTML = ...'
+    message: Potential XSS via innerHTML
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: "CWE-79"
+  - id: eval-usage
+    pattern: 'eval(...)'
+    message: Dangerous eval() usage
+    severity: ERROR
+    languages: [javascript, typescript, python]
+    metadata:
+      cwe: "CWE-95"
+  - id: dangerous-regex
+    pattern: 're.compile(...+...)'
+    message: Potentially catastrophic backtracking
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: "CWE-185"
